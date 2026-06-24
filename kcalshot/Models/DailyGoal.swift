@@ -44,6 +44,16 @@ enum ActivityLevel: String, Codable, CaseIterable, Identifiable {
         case .veryActive: return "极高活动"
         }
     }
+
+    var detail: String {
+        switch self {
+        case .sedentary: return "几乎不运动，以坐姿办公/在家为主（系数 1.2）"
+        case .light: return "每周轻度运动 1–3 天，或日常步行较多（系数 1.375）"
+        case .moderate: return "每周中等强度运动 3–5 天（系数 1.55）"
+        case .active: return "每周高强度运动 6–7 天（系数 1.725）"
+        case .veryActive: return "体力劳动，或每天高强度训练（系数 1.9）"
+        }
+    }
 }
 
 @Model

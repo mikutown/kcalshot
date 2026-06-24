@@ -7,8 +7,13 @@ struct TodayView: View {
     @Query private var goals: [DailyGoal]
     @State private var showCapture = false
     @State private var captureMode: CaptureView.InputMode = .photo
+    @State private var showGoalSheet = false
+    @State private var showGoalPrompt = false
+    @State private var didCheckGoal = false
 
     private var todayEntries: [MealEntry] { allEntries.onSameDay(as: .now) }
+
+    private var hasGoal: Bool { (goals.first?.targetCalories ?? 0) > 0 }
 
     private func openCapture(_ mode: CaptureView.InputMode) {
         captureMode = mode
@@ -39,6 +44,21 @@ struct TodayView: View {
         }
         .sheet(isPresented: $showCapture) {
             CaptureView(mode: captureMode)
+        }
+        .sheet(isPresented: $showGoalSheet) {
+            NavigationStack { GoalSettingsView(showsDone: true) }
+        }
+        .task {
+            // 首次（尚未设置目标）引导用户去设置，每次启动最多提醒一次。
+            guard !didCheckGoal else { return }
+            didCheckGoal = true
+            if !hasGoal { showGoalPrompt = true }
+        }
+        .alert("设置每日目标", isPresented: $showGoalPrompt) {
+            Button("去设置") { showGoalSheet = true }
+            Button("暂不", role: .cancel) {}
+        } message: {
+            Text("先设置你的每日热量与营养目标，今天页就能看到每天的摄入进度。")
         }
     }
 
