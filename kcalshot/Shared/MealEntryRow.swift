@@ -85,6 +85,12 @@ struct DailySummaryCard: View {
             Spacer()
             if hasGoal, let goal {
                 let remaining = goal.targetCalories - totals.calories
+                if goal.goalType != .maintain {
+                    Text(goal.goalType.displayName)
+                        .font(.caption2)
+                        .padding(.horizontal, 6).padding(.vertical, 2)
+                        .background(.tint.opacity(0.15), in: Capsule())
+                }
                 Text(remaining >= 0
                      ? "剩余 \(Int(remaining.rounded())) kcal"
                      : "超出 \(Int((-remaining).rounded())) kcal")

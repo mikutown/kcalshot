@@ -29,12 +29,8 @@ private struct GoalForm: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showActivityHelp = false
 
-    private var tdee: Double {
-        TDEECalculator.tdee(
-            sex: goal.sex, age: goal.age,
-            heightCm: goal.heightCm, weightKg: goal.weightKg,
-            activity: goal.activityLevel
-        )
+    private var bodyKey: String {
+        "\(goal.sexRaw)-\(goal.age)-\(goal.heightCm)-\(goal.weightKg)-\(goal.activityRaw)-\(goal.calorieDelta)"
     }
 
     var body: some View {
@@ -66,26 +62,40 @@ private struct GoalForm: View {
             }
 
             Section {
-                LabeledContent("推荐每日热量", value: "\(Int(tdee.rounded())) kcal")
-                Button("应用推荐值") { applyRecommended() }
+                Picker("目标", selection: $goal.goalType) {
+                    ForEach(GoalType.allCases) { Text($0.displayName).tag($0) }
+                }
+                .pickerStyle(.segmented)
+
+                if goal.goalType != .maintain {
+                    Stepper(value: $goal.calorieDelta, in: goal.goalType.deltaRange, step: 50) {
+                        LabeledContent(
+                            goal.goalType == .cut ? "热量缺口" : "热量盈余",
+                            value: "\(Int(abs(goal.calorieDelta).rounded())) kcal"
+                        )
+                    }
+                }
+            } header: {
+                Text("目标")
             } footer: {
-                Text("按 Mifflin-St Jeor 公式估算。应用后会覆盖下方目标，你仍可手动微调。")
+                Text("目标热量 = 维持热量（TDEE）+ 缺口/盈余，营养配比随目标自动调整。换阶段直接切换即可。")
             }
 
-            Section("每日目标（可手动微调）") {
-                Stepper(value: $goal.targetCalories, in: 800...5000, step: 10) {
-                    LabeledContent("目标热量", value: "\(Int(goal.targetCalories.rounded())) kcal")
-                }
-                Stepper(value: $goal.protein, in: 0...400, step: 1) {
-                    LabeledContent("蛋白质", value: "\(Int(goal.protein.rounded())) g")
-                }
-                Stepper(value: $goal.fat, in: 0...300, step: 1) {
-                    LabeledContent("脂肪", value: "\(Int(goal.fat.rounded())) g")
-                }
-                Stepper(value: $goal.carbs, in: 0...600, step: 1) {
-                    LabeledContent("碳水", value: "\(Int(goal.carbs.rounded())) g")
-                }
+            Section("目标结果") {
+                LabeledContent("维持热量 TDEE", value: "\(Int(goal.tdee.rounded())) kcal")
+                LabeledContent("每日目标热量", value: "\(Int(goal.targetCalories.rounded())) kcal")
+                LabeledContent("蛋白质", value: "\(Int(goal.protein.rounded())) g")
+                LabeledContent("脂肪", value: "\(Int(goal.fat.rounded())) g")
+                LabeledContent("碳水", value: "\(Int(goal.carbs.rounded())) g")
             }
+        }
+        .onAppear { goal.recompute() }
+        .onChange(of: goal.goalType) { _, _ in
+            goal.resetDeltaToDefault()
+            goal.recompute()
+        }
+        .onChange(of: bodyKey) { _, _ in
+            goal.recompute()
         }
         .toolbar {
             if showsDone {
@@ -107,15 +117,6 @@ private struct GoalForm: View {
 
     private var weightBinding: Binding<Int> {
         Binding(get: { Int(goal.weightKg) }, set: { goal.weightKg = Double($0) })
-    }
-
-    private func applyRecommended() {
-        let calories = tdee.rounded()
-        let macros = TDEECalculator.recommendedMacros(calories: calories)
-        goal.targetCalories = calories
-        goal.protein = macros.protein
-        goal.fat = macros.fat
-        goal.carbs = macros.carbs
     }
 
     private func wheelColumn(_ title: String, value: Binding<Int>, range: ClosedRange<Int>, unit: String) -> some View {

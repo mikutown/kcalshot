@@ -13,11 +13,12 @@ enum TDEECalculator {
         bmr(sex: sex, age: age, heightCm: heightCm, weightKg: weightKg) * activity.multiplier
     }
 
-    /// 由目标热量推荐三大营养素克数（蛋白25% / 脂肪30% / 碳水45%）。
-    static func recommendedMacros(calories: Double) -> (protein: Double, fat: Double, carbs: Double) {
-        let protein = calories * 0.25 / 4
-        let fat = calories * 0.30 / 9
-        let carbs = calories * 0.45 / 4
+    /// 由目标热量与目标类型推荐三大营养素克数（配比随目标变）。
+    static func recommendedMacros(calories: Double, goalType: GoalType) -> (protein: Double, fat: Double, carbs: Double) {
+        let split = goalType.macroSplit
+        let protein = calories * split.protein / 4
+        let fat = calories * split.fat / 9
+        let carbs = calories * split.carbs / 4
         return (protein.rounded(), fat.rounded(), carbs.rounded())
     }
 }
