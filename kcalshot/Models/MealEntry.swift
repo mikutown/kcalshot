@@ -17,6 +17,19 @@ enum MealType: String, Codable, CaseIterable, Identifiable {
         case .snack: return "加餐"
         }
     }
+
+    /// 按时段推断默认餐次。
+    static func suggested(for date: Date = .now) -> MealType {
+        switch Calendar.current.component(.hour, from: date) {
+        case 5..<10: return .breakfast
+        case 10..<15: return .lunch
+        case 15..<21: return .dinner
+        default: return .snack
+        }
+    }
+
+    /// 固定展示顺序。
+    static let orderedCases: [MealType] = [.breakfast, .lunch, .dinner, .snack]
 }
 
 @Model

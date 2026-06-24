@@ -12,6 +12,9 @@ struct CaptureView: View {
     @State private var selectedModel: APIModelConfig?
     @State private var showCamera = false
     @State private var vm = RecognitionViewModel()
+    @State private var draftEntry: MealEntry?
+    @State private var draftNeedsReview = false
+    @State private var showSave = false
 
     private var visionModels: [APIModelConfig] {
         models.filter { $0.supportsVision && !$0.modelId.isEmpty }
@@ -56,7 +59,38 @@ struct CaptureView: View {
                 }
                 .ignoresSafeArea()
             }
+            .sheet(isPresented: $showSave) {
+                if let draftEntry {
+                    NavigationStack {
+                        MealEditView(
+                            entry: draftEntry,
+                            isNew: true,
+                            needsReview: draftNeedsReview,
+                            onFinish: { dismiss() }
+                        )
+                    }
+                }
+            }
         }
+    }
+
+    private func prepareSave(_ result: RecognitionResult) {
+        let entry = MealEntry(
+            date: .now,
+            mealType: .suggested(),
+            name: result.items.map(\.name).joined(separator: "、"),
+            calories: result.totalCalories,
+            protein: result.totalProtein,
+            fat: result.totalFat,
+            carbs: result.totalCarbs,
+            healthScore: result.healthScore,
+            note: "",
+            thumbnailData: image.flatMap { ImageEncoder.thumbnailData(from: $0) },
+            modelUsed: result.modelUsed
+        )
+        draftEntry = entry
+        draftNeedsReview = result.needsReview
+        showSave = true
     }
 
     @ViewBuilder
@@ -154,7 +188,16 @@ struct CaptureView: View {
         case .recognizing:
             ProgressView("识别中…").padding()
         case .success(let result):
-            RecognitionResultCard(result: result)
+            VStack(spacing: 12) {
+                RecognitionResultCard(result: result)
+                Button {
+                    prepareSave(result)
+                } label: {
+                    Label("保存到记录", systemImage: "tray.and.arrow.down")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+            }
         case .failure(let message, let rawText):
             VStack(alignment: .leading, spacing: 8) {
                 Label(message, systemImage: "exclamationmark.triangle")
