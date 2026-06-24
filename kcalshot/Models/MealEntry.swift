@@ -38,6 +38,9 @@ final class MealEntry {
     var date: Date
     var mealTypeRaw: String
     var name: String
+    /// 分项明细（每项含克数与每 100g 营养）。
+    var items: [FoodItem]
+    // 以下为由 items 换算的缓存值，便于统计/查询；改动 items 后用 recomputeTotals() 同步。
     var calories: Double
     var protein: Double
     var fat: Double
@@ -57,6 +60,7 @@ final class MealEntry {
         date: Date = .now,
         mealType: MealType = .snack,
         name: String = "",
+        items: [FoodItem] = [],
         calories: Double = 0,
         protein: Double = 0,
         fat: Double = 0,
@@ -70,6 +74,7 @@ final class MealEntry {
         self.date = date
         self.mealTypeRaw = mealType.rawValue
         self.name = name
+        self.items = items
         self.calories = calories
         self.protein = protein
         self.fat = fat
@@ -78,5 +83,14 @@ final class MealEntry {
         self.note = note
         self.thumbnailData = thumbnailData
         self.modelUsed = modelUsed
+        if !items.isEmpty { recomputeTotals() }
+    }
+
+    /// 由 items 的克数换算，刷新缓存的总热量与营养。
+    func recomputeTotals() {
+        calories = items.totalCalories
+        protein = items.totalProtein
+        fat = items.totalFat
+        carbs = items.totalCarbs
     }
 }

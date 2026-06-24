@@ -14,7 +14,7 @@ struct MealEditView: View {
     var body: some View {
         Form {
             if needsReview {
-                Label("建议核对份量与识别结果，确认后再保存", systemImage: "exclamationmark.triangle.fill")
+                Label("核对每种食物的份量（克），确认后再保存", systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline)
                     .foregroundStyle(.orange)
                     .listRowBackground(Color.orange.opacity(0.12))
@@ -39,11 +39,26 @@ struct MealEditView: View {
                 TextField("名称", text: $entry.name, axis: .vertical)
             }
 
-            Section("营养（AI 估算，可修改）") {
-                numberRow("热量", value: $entry.calories, unit: "kcal")
-                numberRow("蛋白质", value: $entry.protein, unit: "g")
-                numberRow("脂肪", value: $entry.fat, unit: "g")
-                numberRow("碳水", value: $entry.carbs, unit: "g")
+            Section {
+                if entry.items.isEmpty {
+                    Text("此记录无分项明细").foregroundStyle(.secondary)
+                } else {
+                    ForEach($entry.items) { $item in
+                        itemEditor($item)
+                    }
+                    .onDelete(perform: deleteItems)
+                }
+            } header: {
+                Text("食物份量（调整克数，热量自动换算）")
+            } footer: {
+                Text("营养密度（每 100g）来自 AI 估算；你只需核对克数。")
+            }
+
+            Section("这一餐合计") {
+                LabeledContent("热量", value: "\(Int(entry.items.totalCalories.rounded())) kcal")
+                LabeledContent("蛋白质", value: "\(Int(entry.items.totalProtein.rounded())) g")
+                LabeledContent("脂肪", value: "\(Int(entry.items.totalFat.rounded())) g")
+                LabeledContent("碳水", value: "\(Int(entry.items.totalCarbs.rounded())) g")
             }
 
             Section("健康评分") {
@@ -66,7 +81,7 @@ struct MealEditView: View {
                 }
             }
         }
-        .navigationTitle(isNew ? "保存记录" : "编辑记录")
+        .navigationTitle(isNew ? "确认份量" : "编辑记录")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             if isNew {
@@ -78,31 +93,47 @@ struct MealEditView: View {
                 }
             } else {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button("完成", action: finishEdit)
                 }
             }
         }
     }
 
-    private func numberRow(_ title: String, value: Binding<Double>, unit: String) -> some View {
-        HStack {
-            Text(title)
-            Spacer()
-            TextField(title, value: value, format: .number)
-                .keyboardType(.decimalPad)
-                .multilineTextAlignment(.trailing)
-                .frame(maxWidth: 120)
-            Text(unit).foregroundStyle(.secondary)
+    private func itemEditor(_ item: Binding<FoodItem>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            TextField("名称", text: item.name)
+            HStack {
+                Text("份量")
+                TextField("克", value: item.grams, format: .number)
+                    .keyboardType(.decimalPad)
+                    .multilineTextAlignment(.trailing)
+                    .frame(maxWidth: 90)
+                Text("g").foregroundStyle(.secondary)
+                Spacer()
+                Text("\(Int(item.wrappedValue.calories.rounded())) kcal")
+                    .font(.subheadline.weight(.medium))
+            }
         }
+    }
+
+    private func deleteItems(_ offsets: IndexSet) {
+        entry.items.remove(atOffsets: offsets)
+        entry.recomputeTotals()
     }
 
     private func saveNew() {
         if entry.name.trimmingCharacters(in: .whitespaces).isEmpty {
-            entry.name = entry.mealType.displayName
+            entry.name = entry.items.map(\.name).joined(separator: "、")
         }
+        entry.recomputeTotals()
         context.insert(entry)
         dismiss()
         onFinish?()
+    }
+
+    private func finishEdit() {
+        entry.recomputeTotals()
+        dismiss()
     }
 
     private func deleteEntry() {
@@ -115,8 +146,16 @@ struct MealEditView: View {
 #Preview {
     NavigationStack {
         MealEditView(
-            entry: MealEntry(mealType: .breakfast, name: "炒饭、煎蛋、沙拉、牛奶",
-                             calories: 650, protein: 28, fat: 33, carbs: 67, healthScore: 7),
+            entry: MealEntry(
+                mealType: .breakfast,
+                name: "炒饭、煎蛋、牛奶",
+                items: [
+                    FoodItem(name: "炒饭", grams: 250, caloriesPer100g: 140, proteinPer100g: 5, fatPer100g: 5.5, carbsPer100g: 19),
+                    FoodItem(name: "煎蛋", grams: 50, caloriesPer100g: 180, proteinPer100g: 13, fatPer100g: 14, carbsPer100g: 1),
+                    FoodItem(name: "牛奶", grams: 250, caloriesPer100g: 60, proteinPer100g: 3.2, fatPer100g: 3.2, carbsPer100g: 4.8),
+                ],
+                healthScore: 7
+            ),
             isNew: true,
             needsReview: true
         )

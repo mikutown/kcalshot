@@ -34,6 +34,8 @@ struct RecognitionResultCard: View {
                 ForEach(result.items) { item in
                     HStack {
                         Text(item.name)
+                        Text("\(Int(item.grams.rounded()))g")
+                            .foregroundStyle(.secondary)
                         Spacer()
                         Text("\(Int(item.calories.rounded())) kcal")
                             .foregroundStyle(.secondary)
@@ -112,8 +114,8 @@ enum HealthScore {
 #Preview {
     RecognitionResultCard(result: RecognitionResult(
         items: [
-            RecognizedItem(name: "米饭", calories: 200, protein: 4, fat: 0.5, carbs: 45),
-            RecognizedItem(name: "红烧肉", calories: 450, protein: 18, fat: 38, carbs: 6),
+            FoodItem(name: "米饭", grams: 150, caloriesPer100g: 130, proteinPer100g: 2.6, fatPer100g: 0.3, carbsPer100g: 28),
+            FoodItem(name: "红烧肉", grams: 120, caloriesPer100g: 375, proteinPer100g: 15, fatPer100g: 32, carbsPer100g: 5),
         ],
         healthScore: 5,
         reason: "脂肪偏高，建议搭配蔬菜",

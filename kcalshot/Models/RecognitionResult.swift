@@ -1,18 +1,8 @@
 import Foundation
 
-/// 识别出的单个食物项。
-struct RecognizedItem: Identifiable, Equatable {
-    let id = UUID()
-    var name: String
-    var calories: Double
-    var protein: Double
-    var fat: Double
-    var carbs: Double
-}
-
 /// 一次识别的完整结果（瞬态，保存时转为 MealEntry）。
 struct RecognitionResult: Equatable {
-    var items: [RecognizedItem]
+    var items: [FoodItem]
     /// 1...10，10 = 最健康
     var healthScore: Int
     var reason: String
@@ -25,10 +15,10 @@ struct RecognitionResult: Equatable {
     /// 识别所用模型显示名
     var modelUsed: String
 
-    var totalCalories: Double { items.reduce(0) { $0 + $1.calories } }
-    var totalProtein: Double { items.reduce(0) { $0 + $1.protein } }
-    var totalFat: Double { items.reduce(0) { $0 + $1.fat } }
-    var totalCarbs: Double { items.reduce(0) { $0 + $1.carbs } }
+    var totalCalories: Double { items.totalCalories }
+    var totalProtein: Double { items.totalProtein }
+    var totalFat: Double { items.totalFat }
+    var totalCarbs: Double { items.totalCarbs }
 
     /// 启发式：是否需要提醒用户核对（见 PRD F3.1）。
     var needsReview: Bool {
@@ -49,25 +39,29 @@ private func lenientDouble<K: CodingKey>(_ c: KeyedDecodingContainer<K>, _ key: 
     return nil
 }
 
-/// 模型返回的原始 JSON 结构。数值字段容忍 Double/Int/String。
 extension RecognitionResult {
+    /// 模型返回的原始 JSON 结构。数值字段容忍 Double/Int/String。
     private struct Payload: Decodable {
         struct Item: Decodable {
             var name: String
-            var calories: Double
-            var protein: Double
-            var fat: Double
-            var carbs: Double
+            var grams: Double
+            var caloriesPer100g: Double
+            var proteinPer100g: Double
+            var fatPer100g: Double
+            var carbsPer100g: Double
 
-            enum CodingKeys: String, CodingKey { case name, calories, protein, fat, carbs }
+            enum CodingKeys: String, CodingKey {
+                case name, grams, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g
+            }
 
             init(from decoder: Decoder) throws {
                 let c = try decoder.container(keyedBy: CodingKeys.self)
                 name = (try? c.decode(String.self, forKey: .name)) ?? "未知食物"
-                calories = lenientDouble(c, .calories) ?? 0
-                protein = lenientDouble(c, .protein) ?? 0
-                fat = lenientDouble(c, .fat) ?? 0
-                carbs = lenientDouble(c, .carbs) ?? 0
+                grams = max(lenientDouble(c, .grams) ?? 100, 0)
+                caloriesPer100g = lenientDouble(c, .caloriesPer100g) ?? 0
+                proteinPer100g = lenientDouble(c, .proteinPer100g) ?? 0
+                fatPer100g = lenientDouble(c, .fatPer100g) ?? 0
+                carbsPer100g = lenientDouble(c, .carbsPer100g) ?? 0
             }
         }
 
@@ -98,7 +92,14 @@ extension RecognitionResult {
         guard let jsonData = extractJSON(from: raw) else { return nil }
         guard let payload = try? JSONDecoder().decode(Payload.self, from: jsonData) else { return nil }
         let items = payload.items.map {
-            RecognizedItem(name: $0.name, calories: $0.calories, protein: $0.protein, fat: $0.fat, carbs: $0.carbs)
+            FoodItem(
+                name: $0.name,
+                grams: $0.grams,
+                caloriesPer100g: $0.caloriesPer100g,
+                proteinPer100g: $0.proteinPer100g,
+                fatPer100g: $0.fatPer100g,
+                carbsPer100g: $0.carbsPer100g
+            )
         }
         guard !items.isEmpty else { return nil }
         return RecognitionResult(
