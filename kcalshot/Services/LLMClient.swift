@@ -9,6 +9,8 @@ enum LLMError: LocalizedError {
     case badStatus(Int, String?)
     case decoding
     case unsupportedEndpoint
+    case emptyResponse
+    case unparseableResult(raw: String)
 
     var errorDescription: String? {
         switch self {
@@ -29,7 +31,17 @@ enum LLMError: LocalizedError {
             return "返回内容无法解析"
         case .unsupportedEndpoint:
             return "该 endpoint 未实现 /models 接口"
+        case .emptyResponse:
+            return "模型未返回内容"
+        case .unparseableResult:
+            return "模型返回的内容不是有效 JSON，可重试或换模型"
         }
+    }
+
+    /// 解析失败时保留模型原始文本，供手动录入。
+    var rawText: String? {
+        if case .unparseableResult(let raw) = self { return raw }
+        return nil
     }
 }
 
@@ -86,5 +98,87 @@ struct LLMClient {
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             throw LLMError.badStatus(http.statusCode, body.map { String($0.prefix(200)) })
         }
+    }
+
+    // MARK: - 视觉识别
+
+    private struct ChatResponse: Decodable {
+        struct Choice: Decodable {
+            struct Message: Decodable { let content: String? }
+            let message: Message
+        }
+        let choices: [Choice]
+    }
+
+    /// 用视觉模型识别一张食物照片，解析为 RecognitionResult。
+    /// 解析失败会重试一次；仍失败抛出 .unparseableResult（带原始文本）。
+    func recognize(
+        imageDataURI: String,
+        modelId: String,
+        modelDisplayName: String
+    ) async throws -> RecognitionResult {
+        var lastRaw = ""
+        for attempt in 0..<2 {
+            let raw = try await chat(imageDataURI: imageDataURI, modelId: modelId, attempt: attempt)
+            lastRaw = raw
+            if let result = RecognitionResult.parse(from: raw, modelUsed: modelDisplayName) {
+                return result
+            }
+        }
+        throw LLMError.unparseableResult(raw: lastRaw)
+    }
+
+    private func chat(imageDataURI: String, modelId: String, attempt: Int) async throws -> String {
+        guard let url = makeURL(path: "/chat/completions") else { throw LLMError.invalidBaseURL }
+        guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
+
+        let body: [String: Any] = [
+            "model": modelId,
+            "messages": [
+                ["role": "system", "content": RecognitionPrompt.system],
+                ["role": "user", "content": [
+                    ["type": "text", "text": RecognitionPrompt.userInstruction],
+                    ["type": "image_url", "image_url": ["url": imageDataURI]],
+                ]],
+            ],
+            "max_tokens": 1200,
+            // 重试时温度归零，尽量稳定输出。
+            "temperature": attempt == 0 ? 0.2 : 0.0,
+            "stream": false,
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 90
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw LLMError.unreachable(error.localizedDescription)
+        }
+
+        guard let http = response as? HTTPURLResponse else { throw LLMError.decoding }
+        switch http.statusCode {
+        case 200...299:
+            break
+        case 401, 403:
+            throw LLMError.unauthorized
+        default:
+            let bodyText = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            throw LLMError.badStatus(http.statusCode, bodyText.map { String($0.prefix(200)) })
+        }
+
+        guard let parsed = try? JSONDecoder().decode(ChatResponse.self, from: data),
+              let content = parsed.choices.first?.message.content,
+              !content.isEmpty else {
+            throw LLMError.emptyResponse
+        }
+        return content
     }
 }

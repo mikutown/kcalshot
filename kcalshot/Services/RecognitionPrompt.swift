@@ -1,0 +1,36 @@
+import Foundation
+
+/// 构造食物识别用的 system / user prompt。
+enum RecognitionPrompt {
+    /// 输出文本字段所用语言（跟随界面）。
+    static var outputLanguageName: String {
+        let code = Locale.preferredLanguages.first ?? "en"
+        return code.hasPrefix("zh") ? "简体中文" : "English"
+    }
+
+    static var system: String {
+        """
+        你是营养分析助手。根据用户提供的食物照片，估算其营养信息。
+        只输出一个 JSON 对象，不要包含任何解释、前后缀或 Markdown 代码围栏。
+        JSON 结构如下：
+        {
+          "items": [
+            {"name": "食物名称", "calories": 数字(kcal), "protein": 数字(g), "fat": 数字(g), "carbs": 数字(g)}
+          ],
+          "healthScore": 1到10的整数(10最健康),
+          "reason": "健康评分的简短理由",
+          "recognitionConfidence": 0到1的小数(你对识别准确度的自评),
+          "portionAssumed": true或false(份量是否为你的假设),
+          "assumptions": "份量与估算的关键假设说明，例如：按一份约250g估算"
+        }
+        要求：
+        - 照片中每种可分辨的食物作为 items 中的一项。
+        - 数值为该项的估算值，营养为整道菜/整份的总量。
+        - 份量无法从照片确定时，按常见标准份量估算，将 portionAssumed 设为 true，并在 assumptions 说明假设。
+        - name、reason、assumptions 用「\(outputLanguageName)」输出。
+        - 只返回 JSON，不要其它任何文字。
+        """
+    }
+
+    static let userInstruction = "请分析这张食物照片，按要求只返回 JSON。"
+}
