@@ -32,7 +32,12 @@ struct RecognitionResultCard: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(result.items) { item in
-                    HStack {
+                    HStack(spacing: 8) {
+                        Text("\(item.healthScore)")
+                            .font(.caption.bold())
+                            .frame(width: 22, height: 22)
+                            .background(HealthScore.color(item.healthScore).opacity(0.18), in: Circle())
+                            .foregroundStyle(HealthScore.color(item.healthScore))
                         Text(item.name)
                         Text("\(Int(item.grams.rounded()))g")
                             .foregroundStyle(.secondary)

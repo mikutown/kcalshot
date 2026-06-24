@@ -28,11 +28,12 @@ JSON 结构如下：
       "caloriesPer100g": 数字(每100克热量kcal),
       "proteinPer100g": 数字(每100克蛋白质g),
       "fatPer100g": 数字(每100克脂肪g),
-      "carbsPer100g": 数字(每100克碳水g)
+      "carbsPer100g": 数字(每100克碳水g),
+      "healthScore": 1到10的整数(这种食物本身的健康程度,10最健康)
     }
   ],
-  "healthScore": 1到10的整数(10最健康),
-  "reason": "健康评分的简短理由",
+  "healthScore": 1到10的整数(整餐的综合健康程度,10最健康),
+  "reason": "整餐健康评分的简短理由",
   "recognitionConfidence": 0到1的小数(你对识别准确度的自评),
   "portionAssumed": true或false(克数是否为你的假设),
   "assumptions": "份量估算的关键假设说明，例如：炒饭按一碗约250克估算"

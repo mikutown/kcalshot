@@ -113,6 +113,15 @@ struct MealEditView: View {
                 Text("\(Int(item.wrappedValue.calories.rounded())) kcal")
                     .font(.subheadline.weight(.medium))
             }
+            Stepper(value: item.healthScore, in: 1...10) {
+                HStack(spacing: 6) {
+                    Text("健康评分").foregroundStyle(.secondary)
+                    Text("\(item.wrappedValue.healthScore)/10")
+                    Text(HealthScore.label(item.wrappedValue.healthScore))
+                        .foregroundStyle(HealthScore.color(item.wrappedValue.healthScore))
+                }
+                .font(.subheadline)
+            }
         }
     }
 
