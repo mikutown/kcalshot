@@ -9,6 +9,7 @@ enum LLMError: LocalizedError {
     case badStatus(Int, String?)
     case decoding
     case unsupportedEndpoint
+    case htmlResponse
     case emptyResponse
     case unparseableResult(raw: String)
 
@@ -31,6 +32,8 @@ enum LLMError: LocalizedError {
             return "返回内容无法解析"
         case .unsupportedEndpoint:
             return "该 endpoint 未实现 /models 接口"
+        case .htmlResponse:
+            return "返回的是网页而非 API 数据，Base URL 可能不对（例如缺少 /v1）"
         case .emptyResponse:
             return "模型未返回内容"
         case .unparseableResult:
@@ -87,7 +90,8 @@ struct LLMClient {
             if let parsed = try? JSONDecoder().decode(ModelsResponse.self, from: data) {
                 return parsed.data.map(\.id)
             }
-            // 200 但不是标准 /models 结构：仍视为连通成功。
+            if Self.looksLikeHTML(data) { throw LLMError.htmlResponse }
+            // 200 且非 HTML、但不是标准 /models 结构：仍视为连通成功。
             return []
         case 401, 403:
             throw LLMError.unauthorized
@@ -174,11 +178,18 @@ struct LLMClient {
             throw LLMError.badStatus(http.statusCode, bodyText.map { String($0.prefix(200)) })
         }
 
+        if Self.looksLikeHTML(data) { throw LLMError.htmlResponse }
         guard let parsed = try? JSONDecoder().decode(ChatResponse.self, from: data),
               let content = parsed.choices.first?.message.content,
               !content.isEmpty else {
             throw LLMError.emptyResponse
         }
         return content
+    }
+
+    private static func looksLikeHTML(_ data: Data) -> Bool {
+        guard let text = String(data: data.prefix(512), encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines).lowercased() else { return false }
+        return text.hasPrefix("<!doctype html") || text.hasPrefix("<html")
     }
 }

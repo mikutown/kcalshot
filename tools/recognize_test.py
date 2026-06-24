@@ -83,9 +83,19 @@ def main():
     )
     try:
         with urllib.request.urlopen(req, timeout=90) as resp:
-            body = json.loads(resp.read().decode())
+            status = resp.status
+            ctype = resp.headers.get("Content-Type", "")
+            raw = resp.read().decode(errors="replace")
     except urllib.error.HTTPError as e:
-        print(f"HTTP {e.code}: {e.read().decode()[:500]}")
+        print(f"HTTP {e.code}: {e.read().decode(errors='replace')[:800]}")
+        sys.exit(1)
+
+    print(f"=== HTTP {status} · Content-Type: {ctype} ===")
+    try:
+        body = json.loads(raw)
+    except json.JSONDecodeError:
+        print("⚠️ 响应体不是标准 JSON，原始内容如下（前 1500 字）：")
+        print(raw[:1500] if raw.strip() else "(空响应体)")
         sys.exit(1)
 
     content = body.get("choices", [{}])[0].get("message", {}).get("content", "")
