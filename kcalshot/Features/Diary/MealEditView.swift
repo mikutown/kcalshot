@@ -61,13 +61,13 @@ struct MealEditView: View {
                 LabeledContent("碳水", value: "\(Int(entry.items.totalCarbs.rounded())) g")
             }
 
-            Section("健康评分") {
-                Stepper(value: $entry.healthScore, in: 1...10) {
-                    HStack {
-                        Text("\(entry.healthScore)/10")
-                        Text(HealthScore.label(entry.healthScore))
-                            .foregroundStyle(HealthScore.color(entry.healthScore))
-                    }
+            Section("整餐健康评分") {
+                HStack {
+                    Text("\(entry.healthScore)/10")
+                    Text(HealthScore.label(entry.healthScore))
+                        .foregroundStyle(HealthScore.color(entry.healthScore))
+                    Spacer()
+                    Text("由 AI 评定").font(.caption).foregroundStyle(.secondary)
                 }
             }
 
@@ -113,15 +113,14 @@ struct MealEditView: View {
                 Text("\(Int(item.wrappedValue.calories.rounded())) kcal")
                     .font(.subheadline.weight(.medium))
             }
-            Stepper(value: item.healthScore, in: 1...10) {
-                HStack(spacing: 6) {
-                    Text("健康评分").foregroundStyle(.secondary)
-                    Text("\(item.wrappedValue.healthScore)/10")
-                    Text(HealthScore.label(item.wrappedValue.healthScore))
-                        .foregroundStyle(HealthScore.color(item.wrappedValue.healthScore))
-                }
-                .font(.subheadline)
+            HStack(spacing: 6) {
+                Text("健康评分").foregroundStyle(.secondary)
+                Text("\(item.wrappedValue.healthScore)/10")
+                Text(HealthScore.label(item.wrappedValue.healthScore))
+                    .foregroundStyle(HealthScore.color(item.wrappedValue.healthScore))
+                Spacer()
             }
+            .font(.subheadline)
         }
     }
 
