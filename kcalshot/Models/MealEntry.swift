@@ -47,6 +47,8 @@ final class MealEntry {
     var carbs: Double
     /// 1...10，10 = 最健康
     var healthScore: Int
+    /// 整餐健康评分的理由。
+    var healthReason: String = ""
     var note: String
     @Attribute(.externalStorage) var thumbnailData: Data?
     var modelUsed: String
@@ -66,6 +68,7 @@ final class MealEntry {
         fat: Double = 0,
         carbs: Double = 0,
         healthScore: Int = 5,
+        healthReason: String = "",
         note: String = "",
         thumbnailData: Data? = nil,
         modelUsed: String = ""
@@ -80,6 +83,7 @@ final class MealEntry {
         self.fat = fat
         self.carbs = carbs
         self.healthScore = healthScore
+        self.healthReason = healthReason
         self.note = note
         self.thumbnailData = thumbnailData
         self.modelUsed = modelUsed

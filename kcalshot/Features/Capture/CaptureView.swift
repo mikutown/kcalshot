@@ -84,6 +84,7 @@ struct CaptureView: View {
             name: result.items.map(\.name).joined(separator: "、"),
             items: result.items,
             healthScore: result.healthScore,
+            healthReason: result.reason,
             note: "",
             thumbnailData: image.flatMap { ImageEncoder.thumbnailData(from: $0) },
             modelUsed: result.modelUsed

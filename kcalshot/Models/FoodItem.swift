@@ -14,6 +14,8 @@ struct FoodItem: Codable, Identifiable, Equatable {
     var carbsPer100g: Double
     /// 该食物本身的健康程度 1...10（10 最健康）。
     var healthScore: Int
+    /// 该食物健康评分的简短理由。
+    var healthReason: String
 
     init(
         id: UUID = UUID(),
@@ -23,7 +25,8 @@ struct FoodItem: Codable, Identifiable, Equatable {
         proteinPer100g: Double,
         fatPer100g: Double,
         carbsPer100g: Double,
-        healthScore: Int = 5
+        healthScore: Int = 5,
+        healthReason: String = ""
     ) {
         self.id = id
         self.name = name
@@ -33,6 +36,7 @@ struct FoodItem: Codable, Identifiable, Equatable {
         self.fatPer100g = fatPer100g
         self.carbsPer100g = carbsPer100g
         self.healthScore = healthScore
+        self.healthReason = healthReason
     }
 
     // 容错解码：老数据缺字段时取默认，避免崩溃。
@@ -46,6 +50,7 @@ struct FoodItem: Codable, Identifiable, Equatable {
         fatPer100g = (try? c.decode(Double.self, forKey: .fatPer100g)) ?? 0
         carbsPer100g = (try? c.decode(Double.self, forKey: .carbsPer100g)) ?? 0
         healthScore = (try? c.decode(Int.self, forKey: .healthScore)) ?? 5
+        healthReason = (try? c.decode(String.self, forKey: .healthReason)) ?? ""
     }
 
     private var factor: Double { grams / 100 }

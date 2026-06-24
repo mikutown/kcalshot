@@ -22,7 +22,8 @@ enum RecognitionPrompt {
               "proteinPer100g": 数字(每100克蛋白质g),
               "fatPer100g": 数字(每100克脂肪g),
               "carbsPer100g": 数字(每100克碳水g),
-              "healthScore": 1到10的整数(这种食物本身的健康程度,10最健康)
+              "healthScore": 1到10的整数(这种食物本身的健康程度,10最健康),
+              "healthReason": "这种食物得到该健康评分的简短理由"
             }
           ],
           "healthScore": 1到10的整数(整餐的综合健康程度,10最健康),

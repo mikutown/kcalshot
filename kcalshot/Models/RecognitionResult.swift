@@ -50,9 +50,10 @@ extension RecognitionResult {
             var fatPer100g: Double
             var carbsPer100g: Double
             var healthScore: Int
+            var healthReason: String
 
             enum CodingKeys: String, CodingKey {
-                case name, grams, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, healthScore
+                case name, grams, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, healthScore, healthReason
             }
 
             init(from decoder: Decoder) throws {
@@ -64,6 +65,7 @@ extension RecognitionResult {
                 fatPer100g = lenientDouble(c, .fatPer100g) ?? 0
                 carbsPer100g = lenientDouble(c, .carbsPer100g) ?? 0
                 healthScore = min(max(Int((lenientDouble(c, .healthScore) ?? 5).rounded()), 1), 10)
+                healthReason = (try? c.decode(String.self, forKey: .healthReason)) ?? ""
             }
         }
 
@@ -101,7 +103,8 @@ extension RecognitionResult {
                 proteinPer100g: $0.proteinPer100g,
                 fatPer100g: $0.fatPer100g,
                 carbsPer100g: $0.carbsPer100g,
-                healthScore: $0.healthScore
+                healthScore: $0.healthScore,
+                healthReason: $0.healthReason
             )
         }
         guard !items.isEmpty else { return nil }

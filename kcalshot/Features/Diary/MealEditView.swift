@@ -11,6 +11,8 @@ struct MealEditView: View {
     /// 保存/删除后回调（用于关闭外层识别流程）。
     var onFinish: (() -> Void)?
 
+    @State private var reasonPopup: String?
+
     var body: some View {
         Form {
             if needsReview {
@@ -66,6 +68,12 @@ struct MealEditView: View {
                     Text("\(entry.healthScore)/10")
                     Text(HealthScore.label(entry.healthScore))
                         .foregroundStyle(HealthScore.color(entry.healthScore))
+                    Button {
+                        showReason(entry.healthReason)
+                    } label: {
+                        Image(systemName: "info.circle")
+                    }
+                    .buttonStyle(.borderless)
                     Spacer()
                     Text("由 AI 评定").font(.caption).foregroundStyle(.secondary)
                 }
@@ -83,6 +91,14 @@ struct MealEditView: View {
         }
         .navigationTitle(isNew ? "确认份量" : "编辑记录")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("评分理由", isPresented: Binding(
+            get: { reasonPopup != nil },
+            set: { if !$0 { reasonPopup = nil } }
+        ), presenting: reasonPopup) { _ in
+            Button("好", role: .cancel) {}
+        } message: { reason in
+            Text(reason)
+        }
         .toolbar {
             if isNew {
                 ToolbarItem(placement: .cancellationAction) {
@@ -118,10 +134,20 @@ struct MealEditView: View {
                 Text("\(item.wrappedValue.healthScore)/10")
                 Text(HealthScore.label(item.wrappedValue.healthScore))
                     .foregroundStyle(HealthScore.color(item.wrappedValue.healthScore))
+                Button {
+                    showReason(item.wrappedValue.healthReason)
+                } label: {
+                    Image(systemName: "info.circle")
+                }
+                .buttonStyle(.borderless)
                 Spacer()
             }
             .font(.subheadline)
         }
+    }
+
+    private func showReason(_ text: String) {
+        reasonPopup = text.isEmpty ? "（暂无说明）" : text
     }
 
     private func deleteItems(_ offsets: IndexSet) {
