@@ -12,9 +12,14 @@ struct CaptureView: View {
     @State private var selectedModel: APIModelConfig?
     @State private var showCamera = false
     @State private var vm = RecognitionViewModel()
-    @State private var draftEntry: MealEntry?
-    @State private var draftNeedsReview = false
-    @State private var showSave = false
+    @State private var draft: SaveDraft?
+
+    /// 待保存草稿（Identifiable，配合 .sheet(item:) 避免空白页竞态）。
+    private struct SaveDraft: Identifiable {
+        let id = UUID()
+        let entry: MealEntry
+        let needsReview: Bool
+    }
 
     private var visionModels: [APIModelConfig] {
         models.filter { $0.supportsVision && !$0.modelId.isEmpty }
@@ -59,16 +64,14 @@ struct CaptureView: View {
                 }
                 .ignoresSafeArea()
             }
-            .sheet(isPresented: $showSave) {
-                if let draftEntry {
-                    NavigationStack {
-                        MealEditView(
-                            entry: draftEntry,
-                            isNew: true,
-                            needsReview: draftNeedsReview,
-                            onFinish: { dismiss() }
-                        )
-                    }
+            .sheet(item: $draft) { draft in
+                NavigationStack {
+                    MealEditView(
+                        entry: draft.entry,
+                        isNew: true,
+                        needsReview: draft.needsReview,
+                        onFinish: { dismiss() }
+                    )
                 }
             }
         }
@@ -85,9 +88,7 @@ struct CaptureView: View {
             thumbnailData: image.flatMap { ImageEncoder.thumbnailData(from: $0) },
             modelUsed: result.modelUsed
         )
-        draftEntry = entry
-        draftNeedsReview = result.needsReview
-        showSave = true
+        draft = SaveDraft(entry: entry, needsReview: result.needsReview)
     }
 
     @ViewBuilder
