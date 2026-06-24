@@ -2,10 +2,10 @@ import Foundation
 
 /// 构造食物识别用的 system / user prompt。
 enum RecognitionPrompt {
-    /// 输出文本字段所用语言（跟随界面）。
+    /// 输出文本字段所用语言（跟随 App 界面语言，而非系统语言）。
+    /// 目前界面为中文；将来接入真正的双语 UI 后，改为读取已解析的界面本地化语言。
     static var outputLanguageName: String {
-        let code = Locale.preferredLanguages.first ?? "en"
-        return code.hasPrefix("zh") ? "简体中文" : "English"
+        AppLanguage.current.outputName
     }
 
     static var system: String {
