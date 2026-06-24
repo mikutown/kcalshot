@@ -6,10 +6,16 @@ import Observation
 final class AppSettings {
     private enum Keys {
         static let globalBaseURL = "global_base_url"
+        static let healthSyncEnabled = "health_sync_enabled"
     }
 
     var globalBaseURL: String {
         didSet { UserDefaults.standard.set(globalBaseURL, forKey: Keys.globalBaseURL) }
+    }
+
+    /// 是否把每日热量同步到 Apple 健康。
+    var healthSyncEnabled: Bool {
+        didSet { UserDefaults.standard.set(healthSyncEnabled, forKey: Keys.healthSyncEnabled) }
     }
 
     /// 全局 API key，读写直通 Keychain。
@@ -20,6 +26,7 @@ final class AppSettings {
 
     init() {
         self.globalBaseURL = UserDefaults.standard.string(forKey: Keys.globalBaseURL) ?? ""
+        self.healthSyncEnabled = UserDefaults.standard.bool(forKey: Keys.healthSyncEnabled)
     }
 
     /// 解析某模型实际生效的 base_url 与 key（覆盖优先，否则用全局）。

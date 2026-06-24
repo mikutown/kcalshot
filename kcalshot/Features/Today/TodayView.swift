@@ -3,6 +3,7 @@ import SwiftData
 
 struct TodayView: View {
     @Environment(\.modelContext) private var context
+    @Environment(AppSettings.self) private var settings
     @Query(sort: \MealEntry.date, order: .reverse) private var allEntries: [MealEntry]
     @Query private var goals: [DailyGoal]
     @State private var showCapture = false
@@ -14,6 +15,11 @@ struct TodayView: View {
     private var todayEntries: [MealEntry] { allEntries.onSameDay(as: .now) }
 
     private var hasGoal: Bool { (goals.first?.targetCalories ?? 0) > 0 }
+
+    /// 当开关或当日总热量变化时触发健康同步。
+    private var healthSyncKey: String {
+        "\(settings.healthSyncEnabled)-\(Int(NutritionTotals(todayEntries).calories.rounded()))"
+    }
 
     private func openCapture(_ mode: CaptureView.InputMode) {
         captureMode = mode
@@ -53,6 +59,12 @@ struct TodayView: View {
             guard !didCheckGoal else { return }
             didCheckGoal = true
             if !hasGoal { showGoalPrompt = true }
+        }
+        .task(id: healthSyncKey) {
+            guard settings.healthSyncEnabled else { return }
+            await HealthKitManager.syncDailyTotal(
+                NutritionTotals(todayEntries).calories, for: .now
+            )
         }
         .alert("设置每日目标", isPresented: $showGoalPrompt) {
             Button("去设置") { showGoalSheet = true }

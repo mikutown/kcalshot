@@ -28,11 +28,23 @@ struct SettingsView: View {
                         LabeledContent("目标热量", value: goalSummary)
                     }
                 }
-                Section("健康同步") {
-                    LabeledContent("Apple 健康", value: "未开启")
+                Section {
+                    Toggle("同步到 Apple 健康", isOn: healthToggle)
+                        .disabled(!HealthKitManager.isAvailable)
+                } header: {
+                    Text("健康同步")
+                } footer: {
+                    Text(HealthKitManager.isAvailable
+                         ? "开启后，每日摄入总热量会写入 Apple 健康（仅写入、不读取）。"
+                         : "此设备不支持 HealthKit。")
                 }
                 Section("关于") {
-                    LabeledContent("版本", value: "0.1.0 (M4)")
+                    NavigationLink {
+                        PrivacyInfoView()
+                    } label: {
+                        Text("数据与隐私")
+                    }
+                    LabeledContent("版本", value: "0.1.0 (M5)")
                 }
             }
             .navigationTitle("设置")
@@ -52,6 +64,21 @@ struct SettingsView: View {
             return "\(Int(goal.targetCalories.rounded())) kcal"
         }
         return "未设置"
+    }
+
+    private var healthToggle: Binding<Bool> {
+        Binding(
+            get: { settings.healthSyncEnabled },
+            set: { newValue in
+                if newValue {
+                    Task {
+                        settings.healthSyncEnabled = await HealthKitManager.requestAuthorization()
+                    }
+                } else {
+                    settings.healthSyncEnabled = false
+                }
+            }
+        )
     }
 }
 

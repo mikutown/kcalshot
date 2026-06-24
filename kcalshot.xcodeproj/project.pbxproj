@@ -243,11 +243,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kcalshot/kcalshot.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍摄食物照片进行识别。照片只发送到你自己配置的 API。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于把每日摄入热量写入 Apple 健康。仅写入、不读取。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于从相册选择食物照片进行识别。照片只发送到你自己配置的 API。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -273,11 +275,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kcalshot/kcalshot.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍摄食物照片进行识别。照片只发送到你自己配置的 API。";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于把每日摄入热量写入 Apple 健康。仅写入、不读取。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于从相册选择食物照片进行识别。照片只发送到你自己配置的 API。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
