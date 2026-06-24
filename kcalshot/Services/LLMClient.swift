@@ -120,15 +120,45 @@ struct LLMClient {
     }
 
     /// 用视觉模型识别一张食物照片，解析为 RecognitionResult。
-    /// 解析失败会重试一次；仍失败抛出 .unparseableResult（带原始文本）。
     func recognize(
         imageDataURI: String,
         modelId: String,
         modelDisplayName: String
     ) async throws -> RecognitionResult {
+        try await recognizeShared(modelId: modelId, modelDisplayName: modelDisplayName) {
+            [
+                ["role": "system", "content": RecognitionPrompt.system(forText: false)],
+                ["role": "user", "content": [
+                    ["type": "text", "text": RecognitionPrompt.photoUserInstruction],
+                    ["type": "image_url", "image_url": ["url": imageDataURI]],
+                ]],
+            ]
+        }
+    }
+
+    /// 用文字描述解析这一餐，解析为 RecognitionResult。
+    func recognizeText(
+        description: String,
+        modelId: String,
+        modelDisplayName: String
+    ) async throws -> RecognitionResult {
+        try await recognizeShared(modelId: modelId, modelDisplayName: modelDisplayName) {
+            [
+                ["role": "system", "content": RecognitionPrompt.system(forText: true)],
+                ["role": "user", "content": RecognitionPrompt.textUserInstruction(description)],
+            ]
+        }
+    }
+
+    /// 解析失败会重试一次；仍失败抛出 .unparseableResult（带原始文本）。
+    private func recognizeShared(
+        modelId: String,
+        modelDisplayName: String,
+        messages: () -> [[String: Any]]
+    ) async throws -> RecognitionResult {
         var lastRaw = ""
         for attempt in 0..<2 {
-            let raw = try await chat(imageDataURI: imageDataURI, modelId: modelId, attempt: attempt)
+            let raw = try await postChat(modelId: modelId, messages: messages(), attempt: attempt)
             lastRaw = raw
             if let result = RecognitionResult.parse(from: raw, modelUsed: modelDisplayName) {
                 return result
@@ -137,19 +167,13 @@ struct LLMClient {
         throw LLMError.unparseableResult(raw: lastRaw)
     }
 
-    private func chat(imageDataURI: String, modelId: String, attempt: Int) async throws -> String {
+    private func postChat(modelId: String, messages: [[String: Any]], attempt: Int) async throws -> String {
         guard let url = makeURL(path: "/chat/completions") else { throw LLMError.invalidBaseURL }
         guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
 
         let body: [String: Any] = [
             "model": modelId,
-            "messages": [
-                ["role": "system", "content": RecognitionPrompt.system],
-                ["role": "user", "content": [
-                    ["type": "text", "text": RecognitionPrompt.userInstruction],
-                    ["type": "image_url", "image_url": ["url": imageDataURI]],
-                ]],
-            ],
+            "messages": messages,
             "max_tokens": 1200,
             // 重试时温度归零，尽量稳定输出。
             "temperature": attempt == 0 ? 0.2 : 0.0,

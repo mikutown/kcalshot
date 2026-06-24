@@ -3,6 +3,9 @@ import SwiftData
 import PhotosUI
 
 struct CaptureView: View {
+    enum InputMode { case photo, text }
+    var mode: InputMode = .photo
+
     @Environment(AppSettings.self) private var settings
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -10,6 +13,7 @@ struct CaptureView: View {
 
     @State private var image: UIImage?
     @State private var photoItem: PhotosPickerItem?
+    @State private var textDescription = ""
     @State private var selectedModel: APIModelConfig?
     @State private var showCamera = false
     @State private var vm = RecognitionViewModel()
@@ -22,8 +26,12 @@ struct CaptureView: View {
         let needsReview: Bool
     }
 
-    private var visionModels: [APIModelConfig] {
-        models.filter { $0.supportsVision && !$0.modelId.isEmpty }
+    /// 文字模式不要求视觉，照片模式要求视觉。
+    private var availableModels: [APIModelConfig] {
+        switch mode {
+        case .photo: return models.filter { $0.supportsVision && !$0.modelId.isEmpty }
+        case .text: return models.filter { !$0.modelId.isEmpty }
+        }
     }
 
     var body: some View {
@@ -31,10 +39,14 @@ struct CaptureView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 16) {
-                        imageArea
-                        pickerButtons
+                        if mode == .photo {
+                            imageArea
+                            pickerButtons
+                        } else {
+                            textInputArea
+                        }
 
-                        if visionModels.isEmpty {
+                        if availableModels.isEmpty {
                             noModelHint
                         } else {
                             modelPicker
@@ -50,7 +62,7 @@ struct CaptureView: View {
                     }
                 }
             }
-            .navigationTitle("识别食物")
+            .navigationTitle(mode == .photo ? "识别食物" : "文字记录")
             .navigationBarTitleDisplayMode(.inline)
             .safeAreaInset(edge: .bottom) {
                 if let result = successResult {
@@ -67,7 +79,7 @@ struct CaptureView: View {
             }
             .onAppear {
                 if selectedModel == nil {
-                    selectedModel = visionModels.first(where: { $0.isDefault }) ?? visionModels.first
+                    selectedModel = availableModels.first(where: { $0.isDefault }) ?? availableModels.first
                 }
             }
             .fullScreenCover(isPresented: $showCamera) {
@@ -160,12 +172,33 @@ struct CaptureView: View {
         }
     }
 
+    private var textInputArea: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("描述这一餐吃了什么、大概多少")
+                .font(.subheadline).foregroundStyle(.secondary)
+            TextEditor(text: $textDescription)
+                .frame(minHeight: 130)
+                .scrollContentBackground(.hidden)
+                .padding(8)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                .overlay(alignment: .topLeading) {
+                    if textDescription.isEmpty {
+                        Text("例如：早餐吃了一根油条、一碗豆浆、一个茶叶蛋")
+                            .foregroundStyle(.tertiary)
+                            .padding(.horizontal, 13)
+                            .padding(.vertical, 16)
+                            .allowsHitTesting(false)
+                    }
+                }
+        }
+    }
+
     private var modelPicker: some View {
         HStack {
             Text("识别模型").foregroundStyle(.secondary)
             Spacer()
             Menu {
-                ForEach(visionModels) { model in
+                ForEach(availableModels) { model in
                     Button {
                         selectedModel = model
                     } label: {
@@ -188,8 +221,7 @@ struct CaptureView: View {
 
     private var recognizeButton: some View {
         Button {
-            guard let image, let model = selectedModel else { return }
-            Task { await vm.recognize(image: image, model: model, settings: settings) }
+            Task { await runRecognition() }
         } label: {
             HStack {
                 if vm.isRecognizing { ProgressView().controlSize(.small) }
@@ -198,7 +230,30 @@ struct CaptureView: View {
             }
         }
         .buttonStyle(.borderedProminent)
-        .disabled(image == nil || selectedModel == nil || vm.isRecognizing)
+        .disabled(recognizeDisabled)
+    }
+
+    private var recognizeDisabled: Bool {
+        if vm.isRecognizing || selectedModel == nil { return true }
+        switch mode {
+        case .photo:
+            return image == nil
+        case .text:
+            return textDescription.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    private func runRecognition() async {
+        guard let model = selectedModel else { return }
+        switch mode {
+        case .photo:
+            guard let image else { return }
+            await vm.recognize(image: image, model: model, settings: settings)
+        case .text:
+            let text = textDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { return }
+            await vm.recognizeText(description: text, model: model, settings: settings)
+        }
     }
 
     /// 固定在底部的保存操作栏；按 needsReview 自适应主次。

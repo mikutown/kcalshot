@@ -25,13 +25,31 @@ final class RecognitionViewModel {
         }
         let endpoint = settings.resolvedEndpoint(for: model)
         let client = LLMClient(baseURL: endpoint.baseURL, apiKey: endpoint.apiKey)
-        do {
-            let result = try await client.recognize(
+        await run {
+            try await client.recognize(
                 imageDataURI: uri,
                 modelId: model.modelId,
                 modelDisplayName: model.displayName
             )
-            state = .success(result)
+        }
+    }
+
+    func recognizeText(description: String, model: APIModelConfig, settings: AppSettings) async {
+        state = .recognizing
+        let endpoint = settings.resolvedEndpoint(for: model)
+        let client = LLMClient(baseURL: endpoint.baseURL, apiKey: endpoint.apiKey)
+        await run {
+            try await client.recognizeText(
+                description: description,
+                modelId: model.modelId,
+                modelDisplayName: model.displayName
+            )
+        }
+    }
+
+    private func run(_ work: () async throws -> RecognitionResult) async {
+        do {
+            state = .success(try await work())
         } catch {
             let llm = error as? LLMError
             state = .failure(

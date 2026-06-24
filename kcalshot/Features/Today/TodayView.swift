@@ -5,8 +5,14 @@ struct TodayView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \MealEntry.date, order: .reverse) private var allEntries: [MealEntry]
     @State private var showCapture = false
+    @State private var captureMode: CaptureView.InputMode = .photo
 
     private var todayEntries: [MealEntry] { allEntries.onSameDay(as: .now) }
+
+    private func openCapture(_ mode: CaptureView.InputMode) {
+        captureMode = mode
+        showCapture = true
+    }
 
     var body: some View {
         NavigationStack {
@@ -20,12 +26,18 @@ struct TodayView: View {
             .navigationTitle("今天")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showCapture = true } label: { Image(systemName: "camera.fill") }
+                    Image(systemName: "camera.fill")
+                        .foregroundStyle(Color.accentColor)
+                        .contentShape(Rectangle())
+                        .onTapGesture { openCapture(.photo) }
+                        .onLongPressGesture(minimumDuration: 0.4) { openCapture(.text) }
+                        .accessibilityLabel("拍照识别")
+                        .accessibilityHint("长按可改用文字记录")
                 }
             }
         }
         .sheet(isPresented: $showCapture) {
-            CaptureView()
+            CaptureView(mode: captureMode)
         }
     }
 
@@ -33,12 +45,16 @@ struct TodayView: View {
         ContentUnavailableView {
             Label("今天还没有记录", systemImage: "fork.knife")
         } description: {
-            Text("拍一张照片，开始记录你的第一餐")
+            Text("拍一张照片，或用文字记录你的第一餐")
         } actions: {
-            Button { showCapture = true } label: {
+            Button { openCapture(.photo) } label: {
                 Label("拍照识别", systemImage: "camera.fill")
             }
             .buttonStyle(.borderedProminent)
+            Button { openCapture(.text) } label: {
+                Label("文字记录", systemImage: "text.cursor")
+            }
+            .buttonStyle(.bordered)
         }
     }
 
