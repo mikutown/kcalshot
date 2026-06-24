@@ -8,6 +8,7 @@ struct ModelEditView: View {
     @Bindable var model: APIModelConfig
 
     @State private var overrideKey: String = ""
+    @State private var showServerPicker = false
 
     var body: some View {
         Form {
@@ -16,6 +17,11 @@ struct ModelEditView: View {
                 TextField("Model ID", text: $model.modelId)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                Button {
+                    showServerPicker = true
+                } label: {
+                    Label("从服务器选择 Model ID", systemImage: "square.and.arrow.down")
+                }
                 Toggle("支持视觉（图片识别）", isOn: $model.supportsVision)
                 Toggle("设为默认识别模型", isOn: isDefaultBinding)
             }
@@ -52,6 +58,16 @@ struct ModelEditView: View {
         }
         .onChange(of: overrideKey) { _, newValue in
             KeychainStore.set(newValue, account: model.id.uuidString)
+        }
+        .sheet(isPresented: $showServerPicker) {
+            let endpoint = settings.resolvedEndpoint(for: model)
+            ModelPickerView(baseURL: endpoint.baseURL, apiKey: endpoint.apiKey) { id in
+                model.modelId = id
+                if model.displayName.isEmpty || model.displayName == "新模型" {
+                    model.displayName = id
+                }
+                model.supportsVision = ModelHeuristics.likelyVision(id)
+            }
         }
     }
 

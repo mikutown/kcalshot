@@ -104,6 +104,11 @@ struct LLMClient {
         }
     }
 
+    /// 拉取可用模型 id 列表（GET /models）。
+    func listModels() async throws -> [String] {
+        try await testConnection()
+    }
+
     // MARK: - 视觉识别
 
     private struct ChatResponse: Decodable {
