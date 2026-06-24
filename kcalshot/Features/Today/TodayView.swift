@@ -4,6 +4,7 @@ import SwiftData
 struct TodayView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \MealEntry.date, order: .reverse) private var allEntries: [MealEntry]
+    @Query private var goals: [DailyGoal]
     @State private var showCapture = false
     @State private var captureMode: CaptureView.InputMode = .photo
 
@@ -61,7 +62,7 @@ struct TodayView: View {
     private var entryList: some View {
         List {
             Section {
-                DailySummaryCard(entries: todayEntries)
+                DailySummaryCard(entries: todayEntries, goal: goals.first)
             }
             ForEach(todayEntries.groupedByMeal(), id: \.meal) { group in
                 Section(group.meal.displayName) {
