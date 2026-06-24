@@ -28,20 +28,27 @@ struct CaptureView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 16) {
-                    imageArea
-                    pickerButtons
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 16) {
+                        imageArea
+                        pickerButtons
 
-                    if visionModels.isEmpty {
-                        noModelHint
-                    } else {
-                        modelPicker
-                        recognizeButton
-                        resultArea
+                        if visionModels.isEmpty {
+                            noModelHint
+                        } else {
+                            modelPicker
+                            recognizeButton
+                            resultArea.id("result")
+                        }
+                    }
+                    .padding()
+                }
+                .onChange(of: successResult) { _, result in
+                    if result != nil {
+                        withAnimation { proxy.scrollTo("result", anchor: .top) }
                     }
                 }
-                .padding()
             }
             .navigationTitle("识别食物")
             .navigationBarTitleDisplayMode(.inline)
