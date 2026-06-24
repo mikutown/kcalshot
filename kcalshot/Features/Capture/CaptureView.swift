@@ -4,6 +4,7 @@ import PhotosUI
 
 struct CaptureView: View {
     @Environment(AppSettings.self) private var settings
+    @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \APIModelConfig.displayName) private var models: [APIModelConfig]
 
@@ -44,6 +45,11 @@ struct CaptureView: View {
             }
             .navigationTitle("识别食物")
             .navigationBarTitleDisplayMode(.inline)
+            .safeAreaInset(edge: .bottom) {
+                if let result = successResult {
+                    saveBar(for: result)
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("关闭") { dismiss() }
@@ -77,8 +83,13 @@ struct CaptureView: View {
         }
     }
 
-    private func prepareSave(_ result: RecognitionResult) {
-        let entry = MealEntry(
+    private var successResult: RecognitionResult? {
+        if case .success(let result) = vm.state { return result }
+        return nil
+    }
+
+    private func buildEntry(from result: RecognitionResult) -> MealEntry {
+        MealEntry(
             date: .now,
             mealType: .suggested(),
             name: result.items.map(\.name).joined(separator: "、"),
@@ -89,7 +100,17 @@ struct CaptureView: View {
             thumbnailData: image.flatMap { ImageEncoder.thumbnailData(from: $0) },
             modelUsed: result.modelUsed
         )
-        draft = SaveDraft(entry: entry, needsReview: result.needsReview)
+    }
+
+    /// 份量无误：直接建记录并关闭，不进确认页。
+    private func directSave(_ result: RecognitionResult) {
+        context.insert(buildEntry(from: result))
+        dismiss()
+    }
+
+    /// 份量需核对：进确认份量页。
+    private func confirmSave(_ result: RecognitionResult) {
+        draft = SaveDraft(entry: buildEntry(from: result), needsReview: result.needsReview)
     }
 
     @ViewBuilder
@@ -173,6 +194,44 @@ struct CaptureView: View {
         .disabled(image == nil || selectedModel == nil || vm.isRecognizing)
     }
 
+    /// 固定在底部的保存操作栏；按 needsReview 自适应主次。
+    private func saveBar(for result: RecognitionResult) -> some View {
+        VStack(spacing: 8) {
+            if result.needsReview {
+                confirmButton(result, prominent: true)
+                directButton(result, prominent: false)
+            } else {
+                directButton(result, prominent: true)
+                confirmButton(result, prominent: false)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.bar)
+    }
+
+    @ViewBuilder
+    private func directButton(_ result: RecognitionResult, prominent: Bool) -> some View {
+        let label = Label("份量无误，直接保存", systemImage: "tray.and.arrow.down")
+            .frame(maxWidth: .infinity)
+        if prominent {
+            Button { directSave(result) } label: { label }.buttonStyle(.borderedProminent)
+        } else {
+            Button { directSave(result) } label: { label }.buttonStyle(.bordered)
+        }
+    }
+
+    @ViewBuilder
+    private func confirmButton(_ result: RecognitionResult, prominent: Bool) -> some View {
+        let label = Label("核对份量后保存", systemImage: "checklist")
+            .frame(maxWidth: .infinity)
+        if prominent {
+            Button { confirmSave(result) } label: { label }.buttonStyle(.borderedProminent)
+        } else {
+            Button { confirmSave(result) } label: { label }.buttonStyle(.bordered)
+        }
+    }
+
     private var isReRecognize: Bool {
         if case .success = vm.state { return true }
         if case .failure = vm.state { return true }
@@ -187,16 +246,7 @@ struct CaptureView: View {
         case .recognizing:
             ProgressView("识别中…").padding()
         case .success(let result):
-            VStack(spacing: 12) {
-                RecognitionResultCard(result: result)
-                Button {
-                    prepareSave(result)
-                } label: {
-                    Label("保存到记录", systemImage: "tray.and.arrow.down")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-            }
+            RecognitionResultCard(result: result)
         case .failure(let message, let rawText):
             VStack(alignment: .leading, spacing: 8) {
                 Label(message, systemImage: "exclamationmark.triangle")
