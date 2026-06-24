@@ -4,6 +4,7 @@ import SwiftData
 @main
 struct KcalShotApp: App {
     let modelContainer: ModelContainer
+    @State private var settings = AppSettings()
 
     init() {
         do {
@@ -18,6 +19,7 @@ struct KcalShotApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()
+                .environment(settings)
         }
         .modelContainer(modelContainer)
     }

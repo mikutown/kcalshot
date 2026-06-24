@@ -16,4 +16,5 @@ struct RootView: View {
 #Preview {
     RootView()
         .modelContainer(PreviewData.container)
+        .environment(PreviewData.settings)
 }
