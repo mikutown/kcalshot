@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
     @Query private var models: [APIModelConfig]
     @Query private var goals: [DailyGoal]
+    @Query(sort: \WeightEntry.date, order: .reverse) private var weights: [WeightEntry]
 
     var body: some View {
         NavigationStack {
@@ -26,6 +27,11 @@ struct SettingsView: View {
                         GoalSettingsView()
                     } label: {
                         LabeledContent("目标热量", value: goalSummary)
+                    }
+                    NavigationLink {
+                        WeightLogView()
+                    } label: {
+                        LabeledContent("体重记录", value: weightSummary)
                     }
                 }
                 Section {
@@ -64,6 +70,11 @@ struct SettingsView: View {
             return "\(Int(goal.targetCalories.rounded())) kcal"
         }
         return "未设置"
+    }
+
+    private var weightSummary: String {
+        guard let latest = weights.first else { return "未记录" }
+        return String(format: "%.1f kg", latest.weightKg)
     }
 
     private var healthToggle: Binding<Bool> {

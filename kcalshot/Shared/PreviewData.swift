@@ -8,7 +8,7 @@ enum PreviewData {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         do {
             return try ModelContainer(
-                for: MealEntry.self, DailyGoal.self, APIModelConfig.self,
+                for: MealEntry.self, DailyGoal.self, APIModelConfig.self, WeightEntry.self,
                 configurations: config
             )
         } catch {
