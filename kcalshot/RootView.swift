@@ -7,6 +7,8 @@ struct RootView: View {
                 .tabItem { Label("今天", systemImage: "sun.max") }
             DiaryView()
                 .tabItem { Label("记录", systemImage: "calendar") }
+            InsightsView()
+                .tabItem { Label("统计", systemImage: "chart.bar.xaxis") }
             SettingsView()
                 .tabItem { Label("设置", systemImage: "gearshape") }
         }
