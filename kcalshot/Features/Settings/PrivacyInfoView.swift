@@ -12,6 +12,7 @@ struct PrivacyInfoView: View {
                 row("缩略图 / 三餐记录 / 目标", "仅存本机（App 沙盒）")
                 row("API Key", "存系统钥匙串（Keychain），不明文落盘")
                 row("每日热量", "本机；开启后可写入 Apple 健康")
+                row("活动消耗", "开启健康后从 Apple 健康读取，仅用于计算当日预算")
             }
 
             Section("会上传什么") {

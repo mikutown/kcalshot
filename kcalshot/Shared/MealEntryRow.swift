@@ -42,9 +42,16 @@ struct MealEntryRow: View {
 struct DailySummaryCard: View {
     let entries: [MealEntry]
     var goal: DailyGoal?
+    /// 当天活动消耗（kcal），加进可吃预算。
+    var exercise: Double = 0
 
     private var totals: NutritionTotals { NutritionTotals(entries) }
     private var hasGoal: Bool { (goal?.targetCalories ?? 0) > 0 }
+    private var target: Double { goal?.targetCalories ?? 0 }
+    /// 当日预算 = 目标 + 运动消耗。
+    private var budget: Double { target + exercise }
+    private var remaining: Double { budget - totals.calories }
+    private var isOver: Bool { remaining < 0 }
 
     private var averageHealth: Int? {
         guard !entries.isEmpty else { return nil }
@@ -53,11 +60,11 @@ struct DailySummaryCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            calorieHeader
-            if hasGoal, let goal {
-                ProgressView(value: min(totals.calories / max(goal.targetCalories, 1), 1))
-                    .tint(totals.calories > goal.targetCalories ? .red : .accentColor)
+        VStack(spacing: 16) {
+            if hasGoal {
+                budgetSection
+            } else {
+                noGoalHeader
             }
             HStack(spacing: 12) {
                 macro("蛋白质", totals.protein, goal?.protein)
@@ -77,28 +84,50 @@ struct DailySummaryCard: View {
         .padding(.vertical, 4)
     }
 
-    private var calorieHeader: some View {
+    private var budgetSection: some View {
+        HStack(alignment: .center) {
+            sideStat("饮食摄入", totals.calories)
+            budgetRing
+            sideStat("运动消耗", exercise)
+        }
+    }
+
+    private var budgetRing: some View {
+        ZStack {
+            Circle().stroke(Color(.systemGray5), lineWidth: 9)
+            Circle()
+                .trim(from: 0, to: budget > 0 ? min(totals.calories / budget, 1) : 0)
+                .stroke(isOver ? Color.red : Color.accentColor,
+                        style: StrokeStyle(lineWidth: 9, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            VStack(spacing: 1) {
+                Text(isOver ? "超出 (千卡)" : "还可以吃 (千卡)")
+                    .font(.caption2).foregroundStyle(.secondary)
+                Text("\(Int(abs(remaining).rounded()))")
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(isOver ? Color.red : Color.primary)
+                Text("推荐预算 \(Int(target.rounded()))")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
+        .frame(width: 140, height: 140)
+    }
+
+    private func sideStat(_ title: String, _ value: Double) -> some View {
+        VStack(spacing: 6) {
+            Text(title).font(.caption).foregroundStyle(.secondary)
+            Text("\(Int(value.rounded()))").font(.title3.weight(.semibold))
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var noGoalHeader: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("\(Int(totals.calories.rounded()))")
                 .font(.system(size: 34, weight: .bold))
             Text("kcal").foregroundStyle(.secondary)
             Spacer()
-            if hasGoal, let goal {
-                let remaining = goal.targetCalories - totals.calories
-                if goal.goalType != .maintain {
-                    Text(goal.goalType.displayName)
-                        .font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(.tint.opacity(0.15), in: Capsule())
-                }
-                Text(remaining >= 0
-                     ? "剩余 \(Int(remaining.rounded())) kcal"
-                     : "超出 \(Int((-remaining).rounded())) kcal")
-                    .font(.subheadline)
-                    .foregroundStyle(remaining >= 0 ? Color.secondary : Color.red)
-            } else {
-                Text("\(entries.count) 条记录").font(.caption).foregroundStyle(.secondary)
-            }
+            Text("\(entries.count) 条记录").font(.caption).foregroundStyle(.secondary)
         }
     }
 

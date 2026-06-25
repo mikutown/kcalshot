@@ -14,6 +14,7 @@ struct TodayView: View {
     @State private var didCheckGoal = false
     @State private var showSourceDialog = false
     @State private var pickedImage: UIImage?
+    @State private var exercise: Double = 0
 
     private var todayEntries: [MealEntry] { allEntries.onSameDay(as: .now) }
 
@@ -82,6 +83,9 @@ struct TodayView: View {
                 NutritionTotals(todayEntries).calories, for: .now
             )
         }
+        .task(id: settings.healthSyncEnabled) {
+            exercise = await HealthKitManager.activeEnergy(for: .now)
+        }
         .alert("设置每日目标", isPresented: $showGoalPrompt) {
             Button("去设置") { showGoalSheet = true }
             Button("暂不", role: .cancel) {}
@@ -110,7 +114,7 @@ struct TodayView: View {
     private var entryList: some View {
         List {
             Section {
-                DailySummaryCard(entries: todayEntries, goal: goals.first)
+                DailySummaryCard(entries: todayEntries, goal: goals.first, exercise: exercise)
             }
             ForEach(todayEntries.groupedByMeal(), id: \.meal) { group in
                 Section(group.meal.displayName) {
