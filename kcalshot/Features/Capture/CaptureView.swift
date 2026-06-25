@@ -6,6 +6,11 @@ struct CaptureView: View {
     enum InputMode { case photo, text }
     var mode: InputMode = .photo
 
+    init(mode: InputMode = .photo, initialImage: UIImage? = nil) {
+        self.mode = mode
+        _image = State(initialValue: initialImage)
+    }
+
     @Environment(AppSettings.self) private var settings
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -16,6 +21,8 @@ struct CaptureView: View {
     @State private var textDescription = ""
     @State private var selectedModel: APIModelConfig?
     @State private var showCamera = false
+    @State private var showSourceDialog = false
+    @State private var showPhotoPicker = false
     @State private var vm = RecognitionViewModel()
     @State private var draft: SaveDraft?
 
@@ -41,7 +48,6 @@ struct CaptureView: View {
                     VStack(spacing: 16) {
                         if mode == .photo {
                             imageArea
-                            pickerButtons
                         } else {
                             textInputArea
                         }
@@ -89,6 +95,14 @@ struct CaptureView: View {
                 }
                 .ignoresSafeArea()
             }
+            .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
+            .confirmationDialog("选择食物照片", isPresented: $showSourceDialog, titleVisibility: .hidden) {
+                if CameraPicker.isAvailable {
+                    Button("拍摄") { showCamera = true }
+                }
+                Button("从手机相册选择") { showPhotoPicker = true }
+                Button("取消", role: .cancel) {}
+            }
             .sheet(item: $draft) { draft in
                 NavigationStack {
                     MealEditView(
@@ -134,42 +148,28 @@ struct CaptureView: View {
 
     @ViewBuilder
     private var imageArea: some View {
-        if let image {
-            Image(uiImage: image)
-                .resizable()
-                .scaledToFit()
-                .frame(maxHeight: 300)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-        } else {
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-                .frame(height: 220)
-                .overlay {
-                    VStack(spacing: 8) {
-                        Image(systemName: "photo.badge.plus").font(.largeTitle)
-                        Text("选择或拍摄一张食物照片").foregroundStyle(.secondary)
+        Group {
+            if let image {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 300)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+            } else {
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemBackground))
+                    .frame(height: 220)
+                    .overlay {
+                        VStack(spacing: 8) {
+                            Image(systemName: "photo.badge.plus").font(.largeTitle)
+                            Text("选择或拍摄一张食物照片").foregroundStyle(.secondary)
+                        }
                     }
-                }
-        }
-    }
-
-    private var pickerButtons: some View {
-        HStack {
-            PhotosPicker(selection: $photoItem, matching: .images) {
-                Label("相册", systemImage: "photo.on.rectangle")
-                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
-
-            Button {
-                showCamera = true
-            } label: {
-                Label("拍照", systemImage: "camera")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .disabled(!CameraPicker.isAvailable)
         }
+        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .onTapGesture { showSourceDialog = true }
     }
 
     private var textInputArea: some View {
