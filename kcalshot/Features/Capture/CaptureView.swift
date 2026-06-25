@@ -5,9 +5,12 @@ import PhotosUI
 struct CaptureView: View {
     enum InputMode { case photo, text }
     var mode: InputMode = .photo
+    /// 新记录归属的日期（从日历某天进入时为那一天，否则为今天）。
+    var targetDate: Date = .now
 
-    init(mode: InputMode = .photo, initialImage: UIImage? = nil) {
+    init(mode: InputMode = .photo, initialImage: UIImage? = nil, targetDate: Date = .now) {
         self.mode = mode
+        self.targetDate = targetDate
         _image = State(initialValue: initialImage)
     }
 
@@ -17,12 +20,9 @@ struct CaptureView: View {
     @Query(sort: \APIModelConfig.displayName) private var models: [APIModelConfig]
 
     @State private var image: UIImage?
-    @State private var photoItem: PhotosPickerItem?
     @State private var textDescription = ""
     @State private var selectedModel: APIModelConfig?
-    @State private var showCamera = false
     @State private var showSourceDialog = false
-    @State private var showPhotoPicker = false
     @State private var vm = RecognitionViewModel()
     @State private var draft: SaveDraft?
 
@@ -80,28 +80,14 @@ struct CaptureView: View {
                     Button("关闭") { dismiss() }
                 }
             }
-            .onChange(of: photoItem) { _, newItem in
-                Task { await loadImage(from: newItem) }
-            }
             .onAppear {
                 if selectedModel == nil {
                     selectedModel = availableModels.first(where: { $0.isDefault }) ?? availableModels.first
                 }
             }
-            .fullScreenCover(isPresented: $showCamera) {
-                CameraPicker { picked in
-                    image = picked
-                    vm.state = .idle
-                }
-                .ignoresSafeArea()
-            }
-            .photosPicker(isPresented: $showPhotoPicker, selection: $photoItem, matching: .images)
-            .confirmationDialog("选择食物照片", isPresented: $showSourceDialog, titleVisibility: .hidden) {
-                if CameraPicker.isAvailable {
-                    Button("拍摄") { showCamera = true }
-                }
-                Button("从手机相册选择") { showPhotoPicker = true }
-                Button("取消", role: .cancel) {}
+            .photoSourcePicker(isPresented: $showSourceDialog) { picked in
+                image = picked
+                vm.state = .idle
             }
             .sheet(item: $draft) { draft in
                 NavigationStack {
@@ -123,7 +109,7 @@ struct CaptureView: View {
 
     private func buildEntry(from result: RecognitionResult) -> MealEntry {
         MealEntry(
-            date: .now,
+            date: targetDate,
             mealType: .suggested(),
             name: result.items.map(\.name).joined(separator: "、"),
             items: result.items,
@@ -340,14 +326,6 @@ struct CaptureView: View {
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
     }
 
-    private func loadImage(from item: PhotosPickerItem?) async {
-        guard let item else { return }
-        if let data = try? await item.loadTransferable(type: Data.self),
-           let uiImage = UIImage(data: data) {
-            image = uiImage
-            vm.state = .idle
-        }
-    }
 }
 
 #Preview {

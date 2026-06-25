@@ -33,6 +33,7 @@ struct MealEditView: View {
             }
 
             Section("餐次与名称") {
+                DatePicker("日期", selection: $entry.date, displayedComponents: [.date, .hourAndMinute])
                 Picker("餐次", selection: $entry.mealType) {
                     ForEach(MealType.orderedCases) { meal in
                         Text(meal.displayName).tag(meal)
