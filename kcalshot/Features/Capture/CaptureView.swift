@@ -237,7 +237,7 @@ struct CaptureView: View {
         } label: {
             HStack {
                 if vm.isRecognizing { ProgressView().controlSize(.small) }
-                Text("换模型重新识别")
+                Text("重新识别")
                     .frame(maxWidth: .infinity)
             }
         }
@@ -324,13 +324,37 @@ struct CaptureView: View {
         return false
     }
 
+    /// 识别中的分阶段进度，减少等待焦虑。
+    private var recognizingView: some View {
+        VStack(spacing: 10) {
+            switch vm.phase {
+            case .preparing:
+                ProgressView()
+                Text("正在准备图片…").font(.subheadline).foregroundStyle(.secondary)
+            case .uploading(let fraction):
+                ProgressView(value: fraction) {
+                    Text("上传图片中").font(.subheadline)
+                } currentValueLabel: {
+                    Text("\(Int(fraction * 100))%").font(.caption).foregroundStyle(.secondary)
+                }
+            case .waiting:
+                ProgressView()
+                Text("模型识别中，请稍候…").font(.subheadline)
+                Text("图片已上传，正在分析食物与营养").font(.caption).foregroundStyle(.secondary)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+    }
+
     @ViewBuilder
     private var resultArea: some View {
         switch vm.state {
         case .idle:
             EmptyView()
         case .recognizing:
-            ProgressView("识别中…").padding()
+            recognizingView
         case .success(let result):
             RecognitionResultCard(result: result)
         case .failure(let message, let rawText):

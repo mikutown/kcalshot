@@ -124,9 +124,14 @@ struct LLMClient {
         imageDataURI: String,
         modelId: String,
         modelDisplayName: String,
-        correction: String? = nil
+        correction: String? = nil,
+        onUploadProgress: (@Sendable (Double) -> Void)? = nil
     ) async throws -> RecognitionResult {
-        try await recognizeShared(modelId: modelId, modelDisplayName: modelDisplayName) {
+        try await recognizeShared(
+            modelId: modelId,
+            modelDisplayName: modelDisplayName,
+            onUploadProgress: onUploadProgress
+        ) {
             [
                 ["role": "system", "content": RecognitionPrompt.system(forText: false)],
                 ["role": "user", "content": [
@@ -155,11 +160,17 @@ struct LLMClient {
     private func recognizeShared(
         modelId: String,
         modelDisplayName: String,
+        onUploadProgress: (@Sendable (Double) -> Void)? = nil,
         messages: () -> [[String: Any]]
     ) async throws -> RecognitionResult {
         var lastRaw = ""
         for attempt in 0..<2 {
-            let raw = try await postChat(modelId: modelId, messages: messages(), attempt: attempt)
+            let raw = try await postChat(
+                modelId: modelId,
+                messages: messages(),
+                attempt: attempt,
+                onUploadProgress: onUploadProgress
+            )
             lastRaw = raw
             if let result = RecognitionResult.parse(from: raw, modelUsed: modelDisplayName) {
                 return result
@@ -168,7 +179,12 @@ struct LLMClient {
         throw LLMError.unparseableResult(raw: lastRaw)
     }
 
-    private func postChat(modelId: String, messages: [[String: Any]], attempt: Int) async throws -> String {
+    private func postChat(
+        modelId: String,
+        messages: [[String: Any]],
+        attempt: Int,
+        onUploadProgress: (@Sendable (Double) -> Void)? = nil
+    ) async throws -> String {
         guard let url = makeURL(path: "/chat/completions") else { throw LLMError.invalidBaseURL }
         guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
 
@@ -191,7 +207,8 @@ struct LLMClient {
         let data: Data
         let response: URLResponse
         do {
-            (data, response) = try await URLSession.shared.data(for: request)
+            let delegate = onUploadProgress.map { UploadProgressDelegate(onProgress: $0) }
+            (data, response) = try await URLSession.shared.data(for: request, delegate: delegate)
         } catch {
             throw LLMError.unreachable(error.localizedDescription)
         }
@@ -221,5 +238,25 @@ struct LLMClient {
         guard let text = String(data: data.prefix(512), encoding: .utf8)?
             .trimmingCharacters(in: .whitespacesAndNewlines).lowercased() else { return false }
         return text.hasPrefix("<!doctype html") || text.hasPrefix("<html")
+    }
+}
+
+/// 上报请求体（含图片）的上传进度。
+private final class UploadProgressDelegate: NSObject, URLSessionTaskDelegate {
+    let onProgress: @Sendable (Double) -> Void
+
+    init(onProgress: @escaping @Sendable (Double) -> Void) {
+        self.onProgress = onProgress
+    }
+
+    func urlSession(
+        _ session: URLSession,
+        task: URLSessionTask,
+        didSendBodyData bytesSent: Int64,
+        totalBytesSent: Int64,
+        totalBytesExpectedToSend: Int64
+    ) {
+        guard totalBytesExpectedToSend > 0 else { return }
+        onProgress(min(1, Double(totalBytesSent) / Double(totalBytesExpectedToSend)))
     }
 }
