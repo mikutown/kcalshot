@@ -25,9 +25,13 @@ enum HealthKitManager {
     }
 
     /// 读取 Apple 健康里的体重样本（含其他 App 同步进去的）。未授权时返回空。
-    static func bodyMassSamples() async -> [WeightPoint] {
+    /// `since` 默认只取最近一个月，避免无界查询；传 nil 取全部历史。
+    static func bodyMassSamples(
+        since: Date? = Calendar.current.date(byAdding: .month, value: -1, to: .now)
+    ) async -> [WeightPoint] {
         guard isAvailable else { return [] }
-        let predicate = HKSamplePredicate.quantitySample(type: bodyMassType, predicate: nil)
+        let datePredicate = since.map { HKQuery.predicateForSamples(withStart: $0, end: nil) }
+        let predicate = HKSamplePredicate.quantitySample(type: bodyMassType, predicate: datePredicate)
         let descriptor = HKSampleQueryDescriptor(
             predicates: [predicate],
             sortDescriptors: [SortDescriptor(\.startDate)]

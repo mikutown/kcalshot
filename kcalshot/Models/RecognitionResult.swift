@@ -120,9 +120,54 @@ extension RecognitionResult {
     }
 
     /// 从可能含 ```json 围栏或额外文字的字符串中提取 JSON 对象。
+    /// 先剥代码围栏，再从首个 `{` 做括号配平扫描取第一个完整对象，最后才退回首`{`到末`}`。
     private static func extractJSON(from raw: String) -> Data? {
-        if let start = raw.firstIndex(of: "{"), let end = raw.lastIndex(of: "}"), start < end {
-            return String(raw[start...end]).data(using: .utf8)
+        let candidate = strippingCodeFence(raw) ?? raw
+        if let object = firstBalancedObject(in: candidate) {
+            return object.data(using: .utf8)
+        }
+        if let start = candidate.firstIndex(of: "{"),
+           let end = candidate.lastIndex(of: "}"), start < end {
+            return String(candidate[start...end]).data(using: .utf8)
+        }
+        return nil
+    }
+
+    /// 取出第一个 ``` 代码围栏内的内容（跳过可选语言标签）；无围栏返回 nil。
+    private static func strippingCodeFence(_ raw: String) -> String? {
+        guard let open = raw.range(of: "```") else { return nil }
+        var contentStart = open.upperBound
+        // 跳过 ``` 后可选的语言标签（如 json）到本行末。
+        if let newline = raw[contentStart...].firstIndex(of: "\n") {
+            contentStart = raw.index(after: newline)
+        }
+        guard let close = raw.range(of: "```", range: contentStart..<raw.endIndex) else { return nil }
+        return String(raw[contentStart..<close.lowerBound])
+    }
+
+    /// 从首个 `{` 起按花括号深度匹配，返回第一个配平的完整对象。
+    /// 跳过字符串字面量内的花括号与转义，避免被 JSON 外或值里的括号干扰。
+    private static func firstBalancedObject(in s: String) -> String? {
+        guard let start = s.firstIndex(of: "{") else { return nil }
+        var depth = 0
+        var inString = false
+        var escaped = false
+        var i = start
+        while i < s.endIndex {
+            let ch = s[i]
+            if inString {
+                if escaped { escaped = false }
+                else if ch == "\\" { escaped = true }
+                else if ch == "\"" { inString = false }
+            } else if ch == "\"" {
+                inString = true
+            } else if ch == "{" {
+                depth += 1
+            } else if ch == "}" {
+                depth -= 1
+                if depth == 0 { return String(s[start...i]) }
+            }
+            i = s.index(after: i)
         }
         return nil
     }

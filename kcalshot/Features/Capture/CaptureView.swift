@@ -324,79 +324,13 @@ struct CaptureView: View {
         return false
     }
 
-    private var isWaiting: Bool {
-        if case .waiting = vm.phase { return true }
-        return false
-    }
-
-    /// 识别中的进度：上方卡片为图片上传，上传跑完后下方卡片为模型识别。
-    private var recognizingView: some View {
-        VStack(spacing: 12) {
-            if mode == .photo {
-                uploadCard
-            }
-            modelCard
-        }
-    }
-
-    private var uploadCard: some View {
-        progressCard("图片上传", systemImage: "arrow.up.circle", active: !isWaiting) {
-            switch vm.phase {
-            case .preparing:
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text("准备图片…").font(.caption).foregroundStyle(.secondary)
-                }
-            case .uploading(let fraction):
-                VStack(alignment: .leading, spacing: 4) {
-                    ProgressView(value: fraction)
-                    Text("\(Int(fraction * 100))%").font(.caption).foregroundStyle(.secondary)
-                }
-            case .waiting:
-                Label("已上传", systemImage: "checkmark.circle.fill")
-                    .font(.caption).foregroundStyle(.green)
-            }
-        }
-    }
-
-    private var modelCard: some View {
-        progressCard("模型识别", systemImage: "sparkles", active: isWaiting) {
-            if isWaiting {
-                HStack(spacing: 8) {
-                    ProgressView().controlSize(.small)
-                    Text("识别中，正在分析食物与营养…").font(.caption).foregroundStyle(.secondary)
-                }
-            } else {
-                Text("等待图片上传完成…").font(.caption).foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private func progressCard<Content: View>(
-        _ title: String,
-        systemImage: String,
-        active: Bool,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label(title, systemImage: systemImage)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(active ? .primary : .secondary)
-            content()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-        .opacity(active ? 1 : 0.6)
-    }
-
     @ViewBuilder
     private var resultArea: some View {
         switch vm.state {
         case .idle:
             EmptyView()
         case .recognizing:
-            recognizingView
+            RecognizingProgressView(isPhoto: mode == .photo, phase: vm.phase)
         case .success(let result):
             RecognitionResultCard(result: result)
         case .failure(let message, let rawText):
@@ -428,94 +362,6 @@ struct CaptureView: View {
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
-/// 补充说明弹页：文本/语音输入识别更正，底部确认按钮随键盘浮动。
-private struct CorrectionSheet: View {
-    @Binding var correction: String
-    var onConfirm: () -> Void
-
-    @Environment(\.dismiss) private var dismiss
-    @State private var speech = SpeechRecognizer()
-    @State private var base = ""
-    @FocusState private var focused: Bool
-
-    private var isEmpty: Bool {
-        correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("告诉模型这张图里哪里识别错了，会带原图重新识别。")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                    TextField("例如：饮品是牛奶不是豆浆", text: $correction, axis: .vertical)
-                        .lineLimit(3...10)
-                        .focused($focused)
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
-                    if speech.isRecording {
-                        Label("正在聆听…", systemImage: "waveform")
-                            .font(.caption).foregroundStyle(.red)
-                    }
-                }
-                .padding()
-            }
-            .navigationTitle("补充说明")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { speech.stop(); dismiss() }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    if !isEmpty {
-                        Button("清空") { correction = ""; base = "" }
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        toggleRecording()
-                    } label: {
-                        Label(speech.isRecording ? "停止" : "口述",
-                              systemImage: speech.isRecording ? "stop.circle.fill" : "mic.fill")
-                            .foregroundStyle(speech.isRecording ? .red : Color.accentColor)
-                    }
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                Button {
-                    speech.stop()
-                    onConfirm()
-                    dismiss()
-                } label: {
-                    Text("按修正重新识别").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(isEmpty)
-                .padding()
-                .background(.bar)
-            }
-            .onChange(of: speech.transcript) { _, text in
-                correction = base.isEmpty ? text : base + " " + text
-            }
-            .onAppear { focused = true }
-            .onDisappear { speech.stop() }
-        }
-        .presentationDetents([.medium, .large])
-    }
-
-    private func toggleRecording() {
-        if speech.isRecording {
-            speech.stop()
-        } else {
-            Task {
-                guard await speech.requestAuthorization() else { return }
-                base = correction.trimmingCharacters(in: .whitespacesAndNewlines)
-                speech.start()
-            }
-        }
     }
 }
 

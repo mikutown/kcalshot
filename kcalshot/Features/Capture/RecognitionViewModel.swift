@@ -28,7 +28,11 @@ final class RecognitionViewModel {
     func recognize(image: UIImage, model: APIModelConfig, settings: AppSettings, correction: String? = nil) async {
         state = .recognizing
         phase = .preparing
-        guard let uri = ImageEncoder.base64DataURI(from: image) else {
+        // 降采样 + JPEG + base64 是 CPU 活，放后台跑，别卡主线程。
+        let uri = await Task.detached(priority: .userInitiated) {
+            ImageEncoder.base64DataURI(from: image)
+        }.value
+        guard let uri else {
             state = .failure(message: "图片处理失败", rawText: nil)
             return
         }

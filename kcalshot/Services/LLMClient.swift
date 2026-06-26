@@ -3,6 +3,7 @@ import Foundation
 /// 可区分的 API 错误，用于给用户可操作的提示。
 enum LLMError: LocalizedError {
     case invalidBaseURL
+    case insecureBaseURL
     case missingAPIKey
     case unauthorized
     case unreachable(String)
@@ -17,6 +18,8 @@ enum LLMError: LocalizedError {
         switch self {
         case .invalidBaseURL:
             return "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）"
+        case .insecureBaseURL:
+            return "Base URL 必须使用 https，以免 API key 与照片明文外发"
         case .missingAPIKey:
             return "缺少 API key"
         case .unauthorized:
@@ -58,16 +61,20 @@ struct LLMClient {
         let data: [Model]
     }
 
-    private func makeURL(path: String) -> URL? {
+    private func makeURL(path: String) throws -> URL {
         let trimmed = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
+        guard !trimmed.isEmpty else { throw LLMError.invalidBaseURL }
         let base = trimmed.hasSuffix("/") ? String(trimmed.dropLast()) : trimmed
-        return URL(string: base + path)
+        guard let url = URL(string: base + path), let scheme = url.scheme?.lowercased() else {
+            throw LLMError.invalidBaseURL
+        }
+        guard scheme == "https" else { throw LLMError.insecureBaseURL }
+        return url
     }
 
     /// 轻量连通性测试：GET /models。成功返回模型 id 列表。
     func testConnection() async throws -> [String] {
-        guard let url = makeURL(path: "/models") else { throw LLMError.invalidBaseURL }
+        let url = try makeURL(path: "/models")
         guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
 
         var request = URLRequest(url: url)
@@ -185,7 +192,7 @@ struct LLMClient {
         attempt: Int,
         onUploadProgress: (@Sendable (Double) -> Void)? = nil
     ) async throws -> String {
-        guard let url = makeURL(path: "/chat/completions") else { throw LLMError.invalidBaseURL }
+        let url = try makeURL(path: "/chat/completions")
         guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
 
         let body: [String: Any] = [

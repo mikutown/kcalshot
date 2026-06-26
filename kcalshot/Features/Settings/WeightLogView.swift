@@ -65,7 +65,8 @@ struct WeightLogView: View {
             }
         }
         .task {
-            healthPoints = await HealthKitManager.bodyMassSamples()
+            // 体重记录页展示完整历史，显式取全部样本。
+            healthPoints = await HealthKitManager.bodyMassSamples(since: nil)
             syncGoalWeight()
         }
         .sheet(isPresented: $showInput) {
