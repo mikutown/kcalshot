@@ -52,6 +52,11 @@ struct CaptureView: View {
                             imageArea
                                 .id("top")
                                 .animation(.easeInOut(duration: 0.25), value: hasResult)
+                            if image != nil, !hasResult {
+                                Text("轻点图片可更换")
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
                         } else {
                             textInputArea
                         }
@@ -60,7 +65,9 @@ struct CaptureView: View {
                             noModelHint
                         } else {
                             modelPicker
-                            recognizeButton
+                            if isReRecognize {
+                                recognizeButton
+                            }
                             resultArea.id("result")
                         }
                     }
@@ -78,6 +85,8 @@ struct CaptureView: View {
             .safeAreaInset(edge: .bottom) {
                 if let result = successResult {
                     saveBar(for: result)
+                } else if !availableModels.isEmpty {
+                    recognizeBar
                 }
             }
             .toolbar {
@@ -216,21 +225,41 @@ struct CaptureView: View {
                 }
             }
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
     }
 
+    /// 出结果后放在滚动区的次要操作：换模型重新识别。
     private var recognizeButton: some View {
         Button {
             Task { await runRecognition() }
         } label: {
             HStack {
                 if vm.isRecognizing { ProgressView().controlSize(.small) }
-                Text(isReRecognize ? "换模型重新识别" : "识别")
+                Text("换模型重新识别")
                     .frame(maxWidth: .infinity)
+            }
+        }
+        .buttonStyle(.bordered)
+        .disabled(recognizeDisabled)
+    }
+
+    /// 无结果时固定在底部的主操作：识别。
+    private var recognizeBar: some View {
+        Button {
+            Task { await runRecognition() }
+        } label: {
+            HStack {
+                if vm.isRecognizing { ProgressView().controlSize(.small) }
+                Text("识别").frame(maxWidth: .infinity)
             }
         }
         .buttonStyle(.borderedProminent)
         .disabled(recognizeDisabled)
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.bar)
     }
 
     private var recognizeDisabled: Bool {
