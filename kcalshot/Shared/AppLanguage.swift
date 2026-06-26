@@ -1,13 +1,16 @@
 import Foundation
 
-/// App 界面语言的单一事实来源。识别输出语言据此决定（而非系统语言）。
+/// App 界面语言的单一事实来源。识别输出语言据此决定。
 enum AppLanguage: String {
     case chinese
     case english
 
-    /// 当前界面语言。目前界面为中文硬编码；接入真正的双语 UI 后，
-    /// 改为读取已解析的本地化语言（Bundle.main.preferredLocalizations）或用户设置。
-    static var current: AppLanguage { .chinese }
+    /// 当前界面语言：取 App 实际解析到的本地化语言（en / zh-Hans），
+    /// 与用户看到的界面一致，因此识别输出语言跟随界面语言。
+    static var current: AppLanguage {
+        let code = Bundle.main.preferredLocalizations.first ?? "zh-Hans"
+        return code.hasPrefix("en") ? .english : .chinese
+    }
 
     /// 写进 prompt 的语言名。
     var outputName: String {
