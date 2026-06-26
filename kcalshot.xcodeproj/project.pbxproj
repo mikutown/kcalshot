@@ -249,6 +249,7 @@
 				DEVELOPMENT_TEAM = W25374AQ7R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = KcalShot;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍摄食物照片进行识别。照片只发送到你自己配置的 API。";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取你当天的活动消耗，计入每日热量预算。";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于把每日摄入热量写入 Apple 健康。";
@@ -285,6 +286,7 @@
 				DEVELOPMENT_TEAM = W25374AQ7R;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = KcalShot;
 				INFOPLIST_KEY_NSCameraUsageDescription = "用于拍摄食物照片进行识别。照片只发送到你自己配置的 API。";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "用于读取你当天的活动消耗，计入每日热量预算。";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于把每日摄入热量写入 Apple 健康。";
