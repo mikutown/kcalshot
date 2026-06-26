@@ -8,32 +8,52 @@ struct WeightLogView: View {
     @Query private var goals: [DailyGoal]
 
     @State private var showInput = false
+    @State private var healthPoints: [WeightPoint] = []
+
+    private var merged: [WeightPoint] {
+        WeightPoint.merged(local: entries, health: healthPoints)
+    }
 
     private var latestWeight: Double {
-        entries.last?.weightKg ?? goals.first?.weightKg ?? 60
+        merged.last?.weightKg ?? goals.first?.weightKg ?? 60
     }
 
     var body: some View {
         List {
-            if entries.count >= 2 {
+            if merged.count >= 2 {
                 Section("趋势") { chart }
             }
-            if entries.isEmpty {
+            if merged.isEmpty {
                 ContentUnavailableView(
                     "还没有体重记录",
                     systemImage: "scalemass",
-                    description: Text("用右上角「+」记录一次体重")
+                    description: Text("用右上角「+」记录，或在 设置→健康 授权读取 Apple 健康里的体重")
                 )
             } else {
                 Section("历史") {
-                    ForEach(entries.reversed()) { entry in
+                    ForEach(merged.reversed()) { point in
                         HStack {
-                            Text(entry.date, format: .dateTime.year().month().day())
+                            Text(point.date, format: .dateTime.year().month().day())
+                            if !point.isLocal {
+                                Text("健康")
+                                    .font(.caption2)
+                                    .padding(.horizontal, 5).padding(.vertical, 1)
+                                    .background(.tint.opacity(0.15), in: Capsule())
+                                    .foregroundStyle(.tint)
+                            }
                             Spacer()
-                            Text(weightText(entry.weightKg)).fontWeight(.medium)
+                            Text(weightText(point.weightKg)).fontWeight(.medium)
+                        }
+                        .swipeActions {
+                            if let entry = point.localEntry {
+                                Button(role: .destructive) {
+                                    delete(entry)
+                                } label: {
+                                    Label("删除", systemImage: "trash")
+                                }
+                            }
                         }
                     }
-                    .onDelete(perform: delete)
                 }
             }
         }
@@ -44,6 +64,10 @@ struct WeightLogView: View {
                 Button { showInput = true } label: { Image(systemName: "plus") }
             }
         }
+        .task {
+            healthPoints = await HealthKitManager.bodyMassSamples()
+            syncGoalWeight()
+        }
         .sheet(isPresented: $showInput) {
             WeightInputSheet(weight: latestWeight) { date, weight in
                 add(date: date, weight: weight)
@@ -52,15 +76,15 @@ struct WeightLogView: View {
     }
 
     private var chart: some View {
-        Chart(entries) { entry in
+        Chart(merged) { point in
             LineMark(
-                x: .value("日期", entry.date),
-                y: .value("体重", entry.weightKg)
+                x: .value("日期", point.date),
+                y: .value("体重", point.weightKg)
             )
             .interpolationMethod(.monotone)
             PointMark(
-                x: .value("日期", entry.date),
-                y: .value("体重", entry.weightKg)
+                x: .value("日期", point.date),
+                y: .value("体重", point.weightKg)
             )
         }
         .chartYScale(domain: .automatic(includesZero: false))
@@ -77,18 +101,28 @@ struct WeightLogView: View {
         syncGoalWeight()
     }
 
-    private func delete(_ offsets: IndexSet) {
-        let reversed = entries.reversed().map { $0 }
-        for index in offsets { context.delete(reversed[index]) }
+    private func delete(_ entry: WeightEntry) {
+        context.delete(entry)
         syncGoalWeight()
     }
 
-    /// 用最新一条体重更新目标里的体重并重算 TDEE。
+    /// 用最新一条体重（本地或健康，取最新日期）更新目标里的体重并重算 TDEE。
     private func syncGoalWeight() {
+        guard let goal = goals.first else { return }
+        var latestDate = Date.distantPast
+        var latestWeight: Double?
         var descriptor = FetchDescriptor<WeightEntry>(sortBy: [SortDescriptor(\.date, order: .reverse)])
         descriptor.fetchLimit = 1
-        guard let latest = try? context.fetch(descriptor).first, let goal = goals.first else { return }
-        goal.weightKg = latest.weightKg
+        if let local = try? context.fetch(descriptor).first, local.date > latestDate {
+            latestDate = local.date
+            latestWeight = local.weightKg
+        }
+        if let health = healthPoints.max(by: { $0.date < $1.date }), health.date > latestDate {
+            latestDate = health.date
+            latestWeight = health.weightKg
+        }
+        guard let weight = latestWeight, abs(goal.weightKg - weight) > 0.001 else { return }
+        goal.weightKg = weight
         goal.recompute()
     }
 }

@@ -6,17 +6,41 @@ enum HealthKitManager {
     private static let store = HKHealthStore()
     private static let energyType = HKQuantityType(.dietaryEnergyConsumed)
     private static let activeEnergyType = HKQuantityType(.activeEnergyBurned)
+    private static let bodyMassType = HKQuantityType(.bodyMass)
 
     static var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
-    /// 请求写入摄入热量 + 读取活动消耗的授权。返回写入是否拿到（用户允许或已授权）。
+    /// 请求写入摄入热量 + 读取活动消耗与体重的授权。返回写入是否拿到（用户允许或已授权）。
     static func requestAuthorization() async -> Bool {
         guard isAvailable else { return false }
         do {
-            try await store.requestAuthorization(toShare: [energyType], read: [activeEnergyType])
+            try await store.requestAuthorization(
+                toShare: [energyType],
+                read: [activeEnergyType, bodyMassType]
+            )
             return store.authorizationStatus(for: energyType) == .sharingAuthorized
         } catch {
             return false
+        }
+    }
+
+    /// 读取 Apple 健康里的体重样本（含其他 App 同步进去的）。未授权时返回空。
+    static func bodyMassSamples() async -> [WeightPoint] {
+        guard isAvailable else { return [] }
+        let predicate = HKSamplePredicate.quantitySample(type: bodyMassType, predicate: nil)
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [predicate],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        )
+        guard let samples = try? await descriptor.result(for: store) else { return [] }
+        let unit = HKUnit.gramUnit(with: .kilo)
+        return samples.map {
+            WeightPoint(
+                date: $0.startDate,
+                weightKg: $0.quantity.doubleValue(for: unit),
+                isLocal: false,
+                localEntry: nil
+            )
         }
     }
 

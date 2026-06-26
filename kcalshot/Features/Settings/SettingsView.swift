@@ -41,7 +41,7 @@ struct SettingsView: View {
                     Text("健康同步")
                 } footer: {
                     Text(HealthKitManager.isAvailable
-                         ? "开启后，每日摄入总热量会写入 Apple 健康，并读取你的活动消耗计入今天的热量预算。"
+                         ? "开启后，每日摄入总热量会写入 Apple 健康；并读取活动消耗计入今天预算、读取体重用于体重趋势。"
                          : "此设备不支持 HealthKit。")
                 }
                 Section("关于") {

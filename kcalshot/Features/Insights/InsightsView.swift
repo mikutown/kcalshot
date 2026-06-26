@@ -8,6 +8,11 @@ struct InsightsView: View {
     @Query(sort: \WeightEntry.date) private var weights: [WeightEntry]
 
     @State private var range: Range = .week
+    @State private var healthWeights: [WeightPoint] = []
+
+    private var mergedWeights: [WeightPoint] {
+        WeightPoint.merged(local: weights, health: healthWeights)
+    }
 
     private enum Range: String, CaseIterable, Identifiable {
         case week, month
@@ -83,6 +88,9 @@ struct InsightsView: View {
                 }
             }
             .navigationTitle("统计")
+            .task {
+                healthWeights = await HealthKitManager.bodyMassSamples()
+            }
         }
     }
 
@@ -105,7 +113,7 @@ struct InsightsView: View {
                 intakeChart
             }
 
-            if weights.count >= 2 {
+            if mergedWeights.count >= 2 {
                 Section("体重趋势") {
                     weightChart
                 }
@@ -166,15 +174,15 @@ struct InsightsView: View {
     }
 
     private var weightChart: some View {
-        Chart(weights) { entry in
+        Chart(mergedWeights) { point in
             LineMark(
-                x: .value("日期", entry.date),
-                y: .value("体重", entry.weightKg)
+                x: .value("日期", point.date),
+                y: .value("体重", point.weightKg)
             )
             .interpolationMethod(.monotone)
             PointMark(
-                x: .value("日期", entry.date),
-                y: .value("体重", entry.weightKg)
+                x: .value("日期", point.date),
+                y: .value("体重", point.weightKg)
             )
         }
         .chartYScale(domain: .automatic(includesZero: false))
