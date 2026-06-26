@@ -119,7 +119,7 @@ private struct GoalForm: View {
         Binding(get: { Int(goal.weightKg) }, set: { goal.weightKg = Double($0) })
     }
 
-    private func wheelColumn(_ title: String, value: Binding<Int>, range: ClosedRange<Int>, unit: String) -> some View {
+    private func wheelColumn(_ title: LocalizedStringKey, value: Binding<Int>, range: ClosedRange<Int>, unit: LocalizedStringKey) -> some View {
         VStack(spacing: 2) {
             Text(title).font(.caption).foregroundStyle(.secondary)
             Picker(title, selection: value) {

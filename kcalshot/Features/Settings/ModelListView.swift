@@ -60,7 +60,11 @@ struct ModelListView: View {
     private func row(for model: APIModelConfig) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack {
-                Text(model.displayName.isEmpty ? "(未命名)" : model.displayName)
+                if model.displayName.isEmpty {
+                    Text("(未命名)")
+                } else {
+                    Text(model.displayName)
+                }
                 if model.isDefault {
                     Text("默认")
                         .font(.caption2)

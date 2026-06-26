@@ -113,7 +113,7 @@ struct DailySummaryCard: View {
         .frame(width: 140, height: 140)
     }
 
-    private func sideStat(_ title: String, _ value: Double) -> some View {
+    private func sideStat(_ title: LocalizedStringKey, _ value: Double) -> some View {
         VStack(spacing: 6) {
             Text(title).font(.caption).foregroundStyle(.secondary)
             Text("\(Int(value.rounded()))").font(.title3.weight(.semibold))
@@ -131,7 +131,7 @@ struct DailySummaryCard: View {
         }
     }
 
-    private func macro(_ name: String, _ value: Double, _ target: Double?) -> some View {
+    private func macro(_ name: LocalizedStringKey, _ value: Double, _ target: Double?) -> some View {
         VStack(spacing: 4) {
             if let target, target > 0 {
                 Text("\(Int(value.rounded()))/\(Int(target.rounded()))g").font(.subheadline.bold())

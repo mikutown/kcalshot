@@ -32,7 +32,7 @@ struct PrivacyInfoView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    private func row(_ title: String, _ detail: String) -> some View {
+    private func row(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
             Text(detail).font(.caption).foregroundStyle(.secondary)

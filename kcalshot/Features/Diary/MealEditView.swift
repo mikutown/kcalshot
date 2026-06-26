@@ -148,7 +148,7 @@ struct MealEditView: View {
     }
 
     private func showReason(_ text: String) {
-        reasonPopup = text.isEmpty ? "（暂无说明）" : text
+        reasonPopup = text.isEmpty ? String(localized: "（暂无说明）") : text
     }
 
     private func deleteItems(_ offsets: IndexSet) {

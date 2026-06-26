@@ -53,7 +53,7 @@ struct RecognizingProgressView: View {
     }
 
     private func progressCard<Content: View>(
-        _ title: String,
+        _ title: LocalizedStringKey,
         systemImage: String,
         active: Bool,
         @ViewBuilder content: () -> Content

@@ -110,7 +110,7 @@ struct DiaryView: View {
     private var weekdayHeader: some View {
         HStack {
             ForEach(["日", "一", "二", "三", "四", "五", "六"], id: \.self) { day in
-                Text(day)
+                Text(LocalizedStringKey(day))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
@@ -147,7 +147,7 @@ struct DiaryView: View {
         .foregroundStyle(.secondary)
     }
 
-    private func legendItem(_ status: DayStatus, _ label: String) -> some View {
+    private func legendItem(_ status: DayStatus, _ label: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             Circle().fill(status.color).frame(width: 7, height: 7)
             Text(label)
@@ -156,8 +156,8 @@ struct DiaryView: View {
 
     private static let monthTitle: DateFormatter = {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "zh_CN")
-        f.dateFormat = "yyyy 年 MM 月"
+        f.locale = .current
+        f.setLocalizedDateFormatFromTemplate("yMMMM")
         return f
     }()
 }

@@ -58,22 +58,22 @@ struct SettingsView: View {
     }
 
     private var globalSummary: String {
-        settings.globalBaseURL.isEmpty ? "未配置" : "已配置"
+        settings.globalBaseURL.isEmpty ? String(localized: "未配置") : String(localized: "已配置")
     }
 
     private var modelSummary: String {
-        models.isEmpty ? "0 个" : "\(models.count) 个"
+        models.isEmpty ? String(localized: "0 个") : String(localized: "\(models.count) 个")
     }
 
     private var goalSummary: String {
         if let goal = goals.first, goal.targetCalories > 0 {
             return "\(Int(goal.targetCalories.rounded())) kcal"
         }
-        return "未设置"
+        return String(localized: "未设置")
     }
 
     private var weightSummary: String {
-        guard let latest = weights.first else { return "未记录" }
+        guard let latest = weights.first else { return String(localized: "未记录") }
         return String(format: "%.1f kg", latest.weightKg)
     }
 

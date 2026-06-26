@@ -18,7 +18,7 @@ struct InsightsView: View {
         case week, month
         var id: String { rawValue }
         var days: Int { self == .week ? 7 : 30 }
-        var title: String { self == .week ? "近 7 天" : "近 30 天" }
+        var title: String { self == .week ? String(localized: "近 7 天") : String(localized: "近 30 天") }
     }
 
     private struct DayIntake: Identifiable {
@@ -136,7 +136,7 @@ struct InsightsView: View {
         }
     }
 
-    private func statTile(_ title: String, _ value: String, _ unit: String) -> some View {
+    private func statTile(_ title: LocalizedStringKey, _ value: String, _ unit: LocalizedStringKey) -> some View {
         VStack(spacing: 4) {
             Text(title).font(.caption).foregroundStyle(.secondary)
             Text(value).font(.title2.weight(.bold))

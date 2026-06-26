@@ -11,10 +11,10 @@ enum MealType: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .breakfast: return "早餐"
-        case .lunch: return "午餐"
-        case .dinner: return "晚餐"
-        case .snack: return "加餐"
+        case .breakfast: return String(localized: "早餐")
+        case .lunch: return String(localized: "午餐")
+        case .dinner: return String(localized: "晚餐")
+        case .snack: return String(localized: "加餐")
         }
     }
 

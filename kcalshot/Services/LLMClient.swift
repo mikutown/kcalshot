@@ -17,30 +17,30 @@ enum LLMError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidBaseURL:
-            return "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）"
+            return String(localized: "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）")
         case .insecureBaseURL:
-            return "Base URL 必须使用 https，以免 API key 与照片明文外发"
+            return String(localized: "Base URL 必须使用 https，以免 API key 与照片明文外发")
         case .missingAPIKey:
-            return "缺少 API Key"
+            return String(localized: "缺少 API Key")
         case .unauthorized:
-            return "鉴权失败：API Key 无效或无权限（401/403）"
+            return String(localized: "鉴权失败：API Key 无效或无权限（401/403）")
         case .unreachable(let detail):
-            return "无法连接到 endpoint：\(detail)"
+            return String(localized: "无法连接到 endpoint：\(detail)")
         case .badStatus(let code, let body):
             if let body, !body.isEmpty {
-                return "服务返回错误 \(code)：\(body)"
+                return String(localized: "服务返回错误 \(code)：\(body)")
             }
-            return "服务返回错误状态码 \(code)"
+            return String(localized: "服务返回错误状态码 \(code)")
         case .decoding:
-            return "返回内容无法解析"
+            return String(localized: "返回内容无法解析")
         case .unsupportedEndpoint:
-            return "该 endpoint 未实现 /models 接口"
+            return String(localized: "该 endpoint 未实现 /models 接口")
         case .htmlResponse:
-            return "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）"
+            return String(localized: "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）")
         case .emptyResponse:
-            return "模型未返回内容"
+            return String(localized: "模型未返回内容")
         case .unparseableResult:
-            return "模型返回的内容不是有效 JSON，请重试或更换模型"
+            return String(localized: "模型返回的内容不是有效 JSON，请重试或更换模型")
         }
     }
 

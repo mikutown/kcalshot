@@ -3,6 +3,10 @@ import SwiftUI
 struct RecognitionResultCard: View {
     let result: RecognitionResult
 
+    private var modelName: String {
+        result.modelUsed.isEmpty ? String(localized: "未知") : result.modelUsed
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if result.needsReview {
@@ -56,7 +60,7 @@ struct RecognitionResultCard: View {
                 infoLine(icon: "heart.text.square", text: result.reason)
             }
 
-            Text("识别模型：\(result.modelUsed.isEmpty ? "未知" : result.modelUsed) · 数值为 AI 估算")
+            Text("识别模型：\(modelName) · 数值为 AI 估算")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
         }
@@ -77,7 +81,7 @@ struct RecognitionResultCard: View {
         .foregroundStyle(HealthScore.color(result.healthScore))
     }
 
-    private func macro(_ name: String, _ value: Double) -> some View {
+    private func macro(_ name: LocalizedStringKey, _ value: Double) -> some View {
         VStack(spacing: 2) {
             Text("\(Int(value.rounded()))g").font(.headline)
             Text(name).font(.caption).foregroundStyle(.secondary)
@@ -99,10 +103,10 @@ struct RecognitionResultCard: View {
 enum HealthScore {
     static func label(_ score: Int) -> String {
         switch score {
-        case 8...10: return "优"
-        case 6...7: return "良"
-        case 4...5: return "中"
-        default: return "差"
+        case 8...10: return String(localized: "优")
+        case 6...7: return String(localized: "良")
+        case 4...5: return String(localized: "中")
+        default: return String(localized: "差")
         }
     }
 

@@ -81,7 +81,7 @@ private struct PhotoSourcePicker: ViewModifier {
         return CGFloat(mainRows) * rowHeight + 8 + rowHeight + 8
     }
 
-    private func sourceRow(_ title: String, action: @escaping () -> Void) -> some View {
+    private func sourceRow(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(.body)

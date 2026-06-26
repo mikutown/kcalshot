@@ -83,7 +83,7 @@ struct ModelPickerView: View {
             let ids = try await LLMClient(baseURL: baseURL, apiKey: apiKey).listModels()
             allIDs = ids.sorted()
             if ids.isEmpty {
-                errorMessage = "该 endpoint 未返回模型列表"
+                errorMessage = String(localized: "该 endpoint 未返回模型列表")
             }
         } catch {
             errorMessage = (error as? LLMError)?.errorDescription ?? error.localizedDescription
