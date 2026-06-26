@@ -262,12 +262,13 @@ struct CaptureView: View {
             }
             .buttonStyle(.bordered)
 
+            // 次要保存在上、推荐(蓝色)的那个固定放最底部，避免"白—蓝—白"夹心。
             if result.needsReview {
-                confirmButton(result, prominent: true)
                 directButton(result, prominent: false)
+                confirmButton(result, prominent: true)
             } else {
-                directButton(result, prominent: true)
                 confirmButton(result, prominent: false)
+                directButton(result, prominent: true)
             }
         }
         .padding(.horizontal)
