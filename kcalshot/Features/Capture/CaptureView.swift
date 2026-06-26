@@ -50,6 +50,8 @@ struct CaptureView: View {
                     VStack(spacing: 16) {
                         if mode == .photo {
                             imageArea
+                                .id("top")
+                                .animation(.easeInOut(duration: 0.25), value: hasResult)
                         } else {
                             textInputArea
                         }
@@ -66,7 +68,8 @@ struct CaptureView: View {
                 }
                 .onChange(of: successResult) { _, result in
                     if result != nil {
-                        withAnimation { proxy.scrollTo("result", anchor: .top) }
+                        // 滚到顶部：缩小后的图片在上、概览紧随其后，同屏可见。
+                        withAnimation { proxy.scrollTo("top", anchor: .top) }
                     }
                 }
             }
@@ -115,6 +118,9 @@ struct CaptureView: View {
         return nil
     }
 
+    /// 出结果后图片缩小，让小图与概览同屏可见。
+    private var hasResult: Bool { successResult != nil }
+
     private func buildEntry(from result: RecognitionResult) -> MealEntry {
         MealEntry(
             date: targetDate,
@@ -147,7 +153,7 @@ struct CaptureView: View {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxHeight: 300)
+                    .frame(maxHeight: hasResult ? 120 : 300)
                     .frame(maxWidth: .infinity)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
             } else {
@@ -251,51 +257,36 @@ struct CaptureView: View {
         }
     }
 
-    /// 固定在底部的保存操作栏：需要补充 / 核对份量后保存 / 份量无误直接保存。
+    /// 固定在底部的保存操作栏：位置与颜色固定，不随 needsReview 变化。
     private func saveBar(for result: RecognitionResult) -> some View {
         VStack(spacing: 8) {
             Button {
                 showCorrectionSheet = true
             } label: {
-                Label("需要补充（识别有误）", systemImage: "text.bubble")
+                Label("需要补充", systemImage: "text.bubble")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
 
-            // 次要保存在上、推荐(蓝色)的那个固定放最底部，避免"白—蓝—白"夹心。
-            if result.needsReview {
-                directButton(result, prominent: false)
-                confirmButton(result, prominent: true)
-            } else {
-                confirmButton(result, prominent: false)
-                directButton(result, prominent: true)
+            Button {
+                confirmSave(result)
+            } label: {
+                Label("需要修改食物分量", systemImage: "slider.horizontal.3")
+                    .frame(maxWidth: .infinity)
             }
+            .buttonStyle(.bordered)
+
+            Button {
+                directSave(result)
+            } label: {
+                Label("直接保存", systemImage: "tray.and.arrow.down")
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(.bar)
-    }
-
-    @ViewBuilder
-    private func directButton(_ result: RecognitionResult, prominent: Bool) -> some View {
-        let label = Label("份量无误，直接保存", systemImage: "tray.and.arrow.down")
-            .frame(maxWidth: .infinity)
-        if prominent {
-            Button { directSave(result) } label: { label }.buttonStyle(.borderedProminent)
-        } else {
-            Button { directSave(result) } label: { label }.buttonStyle(.bordered)
-        }
-    }
-
-    @ViewBuilder
-    private func confirmButton(_ result: RecognitionResult, prominent: Bool) -> some View {
-        let label = Label("核对份量后保存", systemImage: "checklist")
-            .frame(maxWidth: .infinity)
-        if prominent {
-            Button { confirmSave(result) } label: { label }.buttonStyle(.borderedProminent)
-        } else {
-            Button { confirmSave(result) } label: { label }.buttonStyle(.bordered)
-        }
     }
 
     private var isReRecognize: Bool {
