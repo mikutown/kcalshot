@@ -80,9 +80,9 @@ struct DayDetailView: View {
 
     private var emptyState: some View {
         ContentUnavailableView {
-            Label("这天还没有记录", systemImage: "fork.knife")
+            Label("这一天还没有记录", systemImage: "fork.knife")
         } description: {
-            Text("用右上角「+」为这一天添加饮食")
+            Text("请使用右上角「+」为这一天添加记录")
         } actions: {
             Button { showSourceDialog = true } label: {
                 Label("拍照识别", systemImage: "camera.fill")

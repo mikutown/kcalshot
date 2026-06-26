@@ -78,7 +78,7 @@ private struct GoalForm: View {
             } header: {
                 Text("目标")
             } footer: {
-                Text("目标热量 = 维持热量（TDEE）+ 缺口/盈余，营养配比随目标自动调整。换阶段直接切换即可。")
+                Text("目标热量 = 维持热量（TDEE）+ 缺口/盈余，营养配比随目标自动调整；切换阶段后将自动重算。")
             }
 
             Section("目标结果") {
@@ -104,7 +104,7 @@ private struct GoalForm: View {
                 }
             }
         }
-        .alert("活动水平怎么选", isPresented: $showActivityHelp) {
+        .alert("如何选择活动水平", isPresented: $showActivityHelp) {
             Button("好", role: .cancel) {}
         } message: {
             Text(ActivityLevel.allCases.map { "· \($0.detail)" }.joined(separator: "\n"))

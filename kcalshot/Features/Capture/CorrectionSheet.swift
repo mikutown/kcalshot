@@ -18,7 +18,7 @@ struct CorrectionSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("告诉模型这张图里哪里识别错了，会带原图重新识别。")
+                    Text("请说明照片中识别有误之处，将携带原图重新识别。")
                         .font(.subheadline).foregroundStyle(.secondary)
                     TextField("例如：饮品是牛奶不是豆浆", text: $correction, axis: .vertical)
                         .lineLimit(3...10)
@@ -59,7 +59,7 @@ struct CorrectionSheet: View {
                     onConfirm()
                     dismiss()
                 } label: {
-                    Text("按修正重新识别").frame(maxWidth: .infinity)
+                    Text("按补充说明重新识别").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(isEmpty)

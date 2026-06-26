@@ -21,9 +21,9 @@ enum LLMError: LocalizedError {
         case .insecureBaseURL:
             return "Base URL 必须使用 https，以免 API key 与照片明文外发"
         case .missingAPIKey:
-            return "缺少 API key"
+            return "缺少 API Key"
         case .unauthorized:
-            return "鉴权失败：API key 无效或无权限（401/403）"
+            return "鉴权失败：API Key 无效或无权限（401/403）"
         case .unreachable(let detail):
             return "无法连接到 endpoint：\(detail)"
         case .badStatus(let code, let body):
@@ -36,11 +36,11 @@ enum LLMError: LocalizedError {
         case .unsupportedEndpoint:
             return "该 endpoint 未实现 /models 接口"
         case .htmlResponse:
-            return "返回的是网页而非 API 数据，Base URL 可能不对（例如缺少 /v1）"
+            return "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）"
         case .emptyResponse:
             return "模型未返回内容"
         case .unparseableResult:
-            return "模型返回的内容不是有效 JSON，可重试或换模型"
+            return "模型返回的内容不是有效 JSON，请重试或更换模型"
         }
     }
 

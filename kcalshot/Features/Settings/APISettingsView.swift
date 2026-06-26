@@ -17,7 +17,7 @@ struct APISettingsView: View {
             } header: {
                 Text("全局 Endpoint")
             } footer: {
-                Text("OpenAI 兼容格式，例如 https://api.openai.com/v1 。Key 安全保存在系统钥匙串（Keychain）。各模型可在模型设置里单独覆盖。")
+                Text("OpenAI 兼容格式，例如 https://api.openai.com/v1。API Key 安全保存在系统钥匙串（Keychain），各模型可在模型设置中单独覆盖。")
             }
 
             Section {

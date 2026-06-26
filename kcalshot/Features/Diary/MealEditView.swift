@@ -16,7 +16,7 @@ struct MealEditView: View {
     var body: some View {
         Form {
             if needsReview {
-                Label("核对每种食物的份量（克），确认后再保存", systemImage: "exclamationmark.triangle.fill")
+                Label("请核对每种食物的份量（克），确认后保存", systemImage: "exclamationmark.triangle.fill")
                     .font(.subheadline)
                     .foregroundStyle(.orange)
                     .listRowBackground(Color.orange.opacity(0.12))
@@ -54,7 +54,7 @@ struct MealEditView: View {
             } header: {
                 Text("食物份量（调整克数，热量自动换算）")
             } footer: {
-                Text("营养密度（每 100g）来自 AI 估算；你只需核对克数。")
+                Text("营养密度（每 100g）由 AI 估算，仅需核对克数。")
             }
 
             Section("这一餐合计") {

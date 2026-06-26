@@ -27,7 +27,7 @@ struct WeightLogView: View {
                 ContentUnavailableView(
                     "还没有体重记录",
                     systemImage: "scalemass",
-                    description: Text("用右上角「+」记录，或在 设置→健康 授权读取 Apple 健康里的体重")
+                    description: Text("请使用右上角「+」记录，或在「设置 → 健康」中授权读取 Apple 健康的体重数据")
                 )
             } else {
                 Section("历史") {

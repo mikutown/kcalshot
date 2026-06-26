@@ -44,7 +44,7 @@ struct RecognizingProgressView: View {
             if isWaiting {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("识别中，正在分析食物与营养…").font(.caption).foregroundStyle(.secondary)
+                    Text("正在识别，分析食物与营养…").font(.caption).foregroundStyle(.secondary)
                 }
             } else {
                 Text("等待图片上传完成…").font(.caption).foregroundStyle(.secondary)

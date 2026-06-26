@@ -9,7 +9,7 @@ struct MealEntryRow: View {
             VStack(alignment: .leading, spacing: 3) {
                 Text(entry.name.isEmpty ? entry.mealType.displayName : entry.name)
                     .lineLimit(1)
-                Text("\(Int(entry.calories.rounded())) kcal · 蛋\(Int(entry.protein))/脂\(Int(entry.fat))/碳\(Int(entry.carbs))")
+                Text("\(Int(entry.calories.rounded())) kcal · 蛋白\(Int(entry.protein))/脂\(Int(entry.fat))/碳\(Int(entry.carbs))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -73,7 +73,7 @@ struct DailySummaryCard: View {
             }
             if let avg = averageHealth {
                 HStack {
-                    Text("今日健康均分").font(.caption).foregroundStyle(.secondary)
+                    Text("今日平均健康分").font(.caption).foregroundStyle(.secondary)
                     Spacer()
                     Text("\(avg)/10")
                     Text(HealthScore.label(avg)).foregroundStyle(HealthScore.color(avg))
@@ -101,7 +101,7 @@ struct DailySummaryCard: View {
                         style: StrokeStyle(lineWidth: 9, lineCap: .round))
                 .rotationEffect(.degrees(-90))
             VStack(spacing: 1) {
-                Text(isOver ? "超出 (千卡)" : "还可以吃 (千卡)")
+                Text(isOver ? "超出（千卡）" : "剩余（千卡）")
                     .font(.caption2).foregroundStyle(.secondary)
                 Text("\(Int(abs(remaining).rounded()))")
                     .font(.system(size: 30, weight: .bold))

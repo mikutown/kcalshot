@@ -4,7 +4,7 @@ struct PrivacyInfoView: View {
     var body: some View {
         List {
             Section {
-                Text("KcalShot 自身没有服务器，不收集、不分析、不转发你的任何数据。App 用的是你自己配置的 LLM API。")
+                Text("KcalShot 自身没有服务器，不收集、不分析、不转发任何用户数据。App 使用用户自行配置的 LLM API。")
             }
 
             Section("数据存在哪里") {
@@ -17,15 +17,15 @@ struct PrivacyInfoView: View {
             }
 
             Section("会上传什么") {
-                Text("只有识别时，图片或文字会发送到你配置的 API endpoint。除此之外，App 不向任何地方发送数据。")
+                Text("仅在识别时，图片或文字会发送至所配置的 API endpoint；除此之外，App 不向任何地方发送数据。")
             }
 
             Section {
-                Text("如果你的 endpoint 是第三方服务（OpenAI / 中转站 / 代理），图片会离开本机并按该服务的条款处理——这部分的信任与责任在于你对 endpoint 的选择。")
+                Text("若所配置的 endpoint 为第三方服务（OpenAI / 中转站 / 代理），图片将离开本机并按该服务的条款处理——相关信任与责任取决于对 endpoint 的选择。")
             } header: {
                 Text("责任边界")
             } footer: {
-                Text("如果要做到「绝不外流」，请把 endpoint 配成本地模型（如 Ollama）。")
+                Text("若需做到「绝不外流」，请将 endpoint 配置为本地模型（如 Ollama）。")
             }
         }
         .navigationTitle("数据与隐私")

@@ -55,7 +55,7 @@ struct TodayView: View {
                         .onTapGesture { showSourceDialog = true }
                         .onLongPressGesture(minimumDuration: 0.4) { openCapture(.text) }
                         .accessibilityLabel("拍照识别")
-                        .accessibilityHint("长按可改用文字记录")
+                        .accessibilityHint("长按可切换为文字记录")
                 }
             }
         }
@@ -87,10 +87,10 @@ struct TodayView: View {
             exercise = await HealthKitManager.activeEnergy(for: .now)
         }
         .alert("设置每日目标", isPresented: $showGoalPrompt) {
-            Button("去设置") { showGoalSheet = true }
-            Button("暂不", role: .cancel) {}
+            Button("前往设置") { showGoalSheet = true }
+            Button("暂不设置", role: .cancel) {}
         } message: {
-            Text("先设置你的每日热量与营养目标，今天页就能看到每天的摄入进度。")
+            Text("请先设置每日热量与营养目标，「今天」页即可查看每日摄入进度。")
         }
     }
 
@@ -98,7 +98,7 @@ struct TodayView: View {
         ContentUnavailableView {
             Label("今天还没有记录", systemImage: "fork.knife")
         } description: {
-            Text("拍一张照片，或用文字记录你的第一餐")
+            Text("请拍摄照片，或通过文字记录第一餐")
         } actions: {
             Button { showSourceDialog = true } label: {
                 Label("拍照识别", systemImage: "camera.fill")

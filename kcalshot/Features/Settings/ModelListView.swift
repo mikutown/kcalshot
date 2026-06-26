@@ -15,7 +15,7 @@ struct ModelListView: View {
                 ContentUnavailableView(
                     "还没有模型",
                     systemImage: "cpu",
-                    description: Text("点右上角 + 添加一个用于识别的模型")
+                    description: Text("请点击右上角「+」添加用于识别的模型")
                 )
             } else {
                 ForEach(models) { model in
@@ -71,7 +71,7 @@ struct ModelListView: View {
                 }
             }
             HStack(spacing: 6) {
-                Text(model.modelId.isEmpty ? "未设置 model id" : model.modelId)
+                Text(model.modelId.isEmpty ? "未设置 Model ID" : model.modelId)
                 if !model.supportsVision {
                     Text("· 不支持视觉").foregroundStyle(.orange)
                 }

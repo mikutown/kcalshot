@@ -139,9 +139,9 @@ struct DiaryView: View {
 
     private var legend: some View {
         HStack(spacing: 16) {
-            legendItem(.over, "吃多了")
-            legendItem(.onTarget, "合适")
-            legendItem(.under, "吃少了")
+            legendItem(.over, "超出")
+            legendItem(.onTarget, "适中")
+            legendItem(.under, "不足")
         }
         .font(.caption)
         .foregroundStyle(.secondary)

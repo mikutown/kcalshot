@@ -37,7 +37,7 @@ struct ModelEditView: View {
             } header: {
                 Text("覆盖 Endpoint（可选）")
             } footer: {
-                Text("仅当此模型走与全局不同的 endpoint 时填写，例如本地 Ollama 或专用代理。")
+                Text("仅当此模型使用与全局不同的 endpoint 时填写，例如本地 Ollama 或专用代理。")
             }
 
             Section {
@@ -46,7 +46,7 @@ struct ModelEditView: View {
                 }
             } footer: {
                 if !model.supportsVision {
-                    Text("此模型标记为不支持视觉，将不能用于拍照识别。")
+                    Text("此模型标记为不支持视觉，无法用于拍照识别。")
                         .foregroundStyle(.orange)
                 }
             }

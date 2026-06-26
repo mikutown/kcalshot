@@ -81,7 +81,7 @@ struct InsightsView: View {
                     ContentUnavailableView(
                         "还没有可统计的数据",
                         systemImage: "chart.bar",
-                        description: Text("记录几餐后，这里会显示你的摄入趋势与达标情况")
+                        description: Text("记录数餐后，此处将显示摄入趋势与达标情况")
                     )
                 } else {
                     content
@@ -121,7 +121,7 @@ struct InsightsView: View {
 
             if target <= 0 {
                 Section {
-                    Text("设置每日目标后，才能统计达标天数与连续达标。")
+                    Text("设置每日目标后，方可统计达标天数与连续达标。")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }

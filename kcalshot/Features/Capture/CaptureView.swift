@@ -53,7 +53,7 @@ struct CaptureView: View {
                                 .id("top")
                                 .animation(.easeInOut(duration: 0.25), value: hasResult)
                             if image != nil, !hasResult {
-                                Text("轻点图片可更换")
+                                Text("点按图片可更换照片")
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
                             }
@@ -183,7 +183,7 @@ struct CaptureView: View {
 
     private var textInputArea: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("描述这一餐吃了什么、大概多少")
+            Text("请描述这一餐的食物与大致分量")
                 .font(.subheadline).foregroundStyle(.secondary)
             TextEditor(text: $textDescription)
                 .frame(minHeight: 130)
@@ -192,7 +192,7 @@ struct CaptureView: View {
                 .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
                 .overlay(alignment: .topLeading) {
                     if textDescription.isEmpty {
-                        Text("例如：早餐吃了一根油条、一碗豆浆、一个茶叶蛋")
+                        Text("例如：早餐一根油条、一碗豆浆、一个茶叶蛋")
                             .foregroundStyle(.tertiary)
                             .padding(.horizontal, 13)
                             .padding(.vertical, 16)
@@ -292,7 +292,7 @@ struct CaptureView: View {
             Button {
                 showCorrectionSheet = true
             } label: {
-                Label("需要补充", systemImage: "text.bubble")
+                Label("补充说明并重新识别", systemImage: "text.bubble")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
@@ -300,7 +300,7 @@ struct CaptureView: View {
             Button {
                 confirmSave(result)
             } label: {
-                Label("需要修改食物分量", systemImage: "slider.horizontal.3")
+                Label("调整份量后保存", systemImage: "slider.horizontal.3")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
@@ -355,7 +355,7 @@ struct CaptureView: View {
         VStack(spacing: 8) {
             Text("还没有可用于识别的视觉模型")
                 .font(.subheadline)
-            Text("请到 设置 → 模型管理 添加一个支持视觉的模型")
+            Text("请前往「设置 → 模型管理」添加支持视觉的模型")
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

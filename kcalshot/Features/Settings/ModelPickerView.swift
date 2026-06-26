@@ -51,7 +51,7 @@ struct ModelPickerView: View {
                 Section {
                     Toggle("仅显示可能支持视觉的模型", isOn: $visionOnly)
                 } footer: {
-                    Text("共 \(allIDs.count) 个模型，当前显示 \(filtered.count) 个。视觉判断为启发式，选中后可在编辑页手动调整。")
+                    Text("共 \(allIDs.count) 个模型，当前显示 \(filtered.count) 个。视觉判断为启发式，选择后可在编辑页手动调整。")
                 }
                 Section {
                     ForEach(filtered, id: \.self) { id in
@@ -72,7 +72,7 @@ struct ModelPickerView: View {
                     }
                 }
             }
-            .searchable(text: $search, prompt: "搜索模型 id")
+            .searchable(text: $search, prompt: "搜索 Model ID")
         }
     }
 
