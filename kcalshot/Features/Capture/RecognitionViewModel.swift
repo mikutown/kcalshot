@@ -17,7 +17,7 @@ final class RecognitionViewModel {
         return false
     }
 
-    func recognize(image: UIImage, model: APIModelConfig, settings: AppSettings) async {
+    func recognize(image: UIImage, model: APIModelConfig, settings: AppSettings, correction: String? = nil) async {
         state = .recognizing
         guard let uri = ImageEncoder.base64DataURI(from: image) else {
             state = .failure(message: "图片处理失败", rawText: nil)
@@ -29,7 +29,8 @@ final class RecognitionViewModel {
             try await client.recognize(
                 imageDataURI: uri,
                 modelId: model.modelId,
-                modelDisplayName: model.displayName
+                modelDisplayName: model.displayName,
+                correction: correction
             )
         }
     }

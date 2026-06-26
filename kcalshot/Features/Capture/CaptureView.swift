@@ -21,6 +21,9 @@ struct CaptureView: View {
 
     @State private var image: UIImage?
     @State private var textDescription = ""
+    @State private var correction = ""
+    @State private var correctionBase = ""
+    @State private var speech = SpeechRecognizer()
     @State private var selectedModel: APIModelConfig?
     @State private var showSourceDialog = false
     @State private var vm = RecognitionViewModel()
@@ -58,6 +61,9 @@ struct CaptureView: View {
                             modelPicker
                             recognizeButton
                             resultArea.id("result")
+                            if mode == .photo, isReRecognize {
+                                correctionArea
+                            }
                         }
                     }
                     .padding()
@@ -87,6 +93,7 @@ struct CaptureView: View {
             }
             .photoSourcePicker(isPresented: $showSourceDialog) { picked in
                 image = picked
+                correction = ""
                 vm.state = .idle
             }
             .sheet(item: $draft) { draft in
@@ -219,6 +226,74 @@ struct CaptureView: View {
         .disabled(recognizeDisabled)
     }
 
+    /// 二次确认：识别有结果后，让用户补充更正（文字或语音）再重识别。
+    private var correctionArea: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("识别不准？告诉模型哪里错了")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Spacer()
+                if !correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Button {
+                        correction = ""
+                        correctionBase = ""
+                    } label: {
+                        Label("清空", systemImage: "xmark.circle")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.borderless)
+                }
+                Button {
+                    toggleRecording()
+                } label: {
+                    Label(
+                        speech.isRecording ? "停止" : "口述",
+                        systemImage: speech.isRecording ? "stop.circle.fill" : "mic.fill"
+                    )
+                    .font(.subheadline)
+                    .foregroundStyle(speech.isRecording ? .red : Color.accentColor)
+                }
+                .buttonStyle(.borderless)
+            }
+            TextField("例如：饮品是牛奶不是豆浆", text: $correction, axis: .vertical)
+                .lineLimit(1...4)
+                .padding(10)
+                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+            if speech.isRecording {
+                Label("正在聆听…", systemImage: "waveform")
+                    .font(.caption).foregroundStyle(.red)
+            }
+            Button {
+                speech.stop()
+                Task { await runRecognition() }
+            } label: {
+                HStack {
+                    if vm.isRecognizing { ProgressView().controlSize(.small) }
+                    Text("按修正重新识别").frame(maxWidth: .infinity)
+                }
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(vm.isRecognizing || correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+        .onChange(of: speech.transcript) { _, text in
+            correction = correctionBase.isEmpty ? text : correctionBase + " " + text
+        }
+        .onDisappear { speech.stop() }
+    }
+
+    private func toggleRecording() {
+        if speech.isRecording {
+            speech.stop()
+        } else {
+            Task {
+                guard await speech.requestAuthorization() else { return }
+                correctionBase = correction.trimmingCharacters(in: .whitespacesAndNewlines)
+                speech.start()
+            }
+        }
+    }
+
     private var recognizeDisabled: Bool {
         if vm.isRecognizing || selectedModel == nil { return true }
         switch mode {
@@ -230,11 +305,13 @@ struct CaptureView: View {
     }
 
     private func runRecognition() async {
+        speech.stop()
         guard let model = selectedModel else { return }
         switch mode {
         case .photo:
             guard let image else { return }
-            await vm.recognize(image: image, model: model, settings: settings)
+            let note = correction.trimmingCharacters(in: .whitespacesAndNewlines)
+            await vm.recognize(image: image, model: model, settings: settings, correction: note.isEmpty ? nil : note)
         case .text:
             let text = textDescription.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !text.isEmpty else { return }

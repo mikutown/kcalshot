@@ -123,13 +123,14 @@ struct LLMClient {
     func recognize(
         imageDataURI: String,
         modelId: String,
-        modelDisplayName: String
+        modelDisplayName: String,
+        correction: String? = nil
     ) async throws -> RecognitionResult {
         try await recognizeShared(modelId: modelId, modelDisplayName: modelDisplayName) {
             [
                 ["role": "system", "content": RecognitionPrompt.system(forText: false)],
                 ["role": "user", "content": [
-                    ["type": "text", "text": RecognitionPrompt.photoUserInstruction],
+                    ["type": "text", "text": RecognitionPrompt.photoUserInstruction(correction: correction)],
                     ["type": "image_url", "image_url": ["url": imageDataURI]],
                 ]],
             ]

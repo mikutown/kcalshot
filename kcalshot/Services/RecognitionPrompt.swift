@@ -52,7 +52,13 @@ enum RecognitionPrompt {
         """
     }
 
-    static let photoUserInstruction = "请分析这张食物照片，按要求只返回 JSON。"
+    static func photoUserInstruction(correction: String? = nil) -> String {
+        var text = "请分析这张食物照片，按要求只返回 JSON。"
+        if let correction, !correction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            text += "\n用户对上一次识别的更正（请优先采纳，据此修正对应食物）：\(correction)"
+        }
+        return text
+    }
 
     static func textUserInstruction(_ description: String) -> String {
         "用户对这一餐的描述：\(description)\n请据此估算，按要求只返回 JSON。"
