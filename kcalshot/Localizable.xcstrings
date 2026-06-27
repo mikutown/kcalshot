@@ -3536,11 +3536,41 @@
         }
       }
     },
-    "从手机相册选择": {},
+    "从手机相册选择": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose from Library"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从手机相册选择"
+          }
+        }
+      }
+    },
     "保存": {},
     "加餐": {},
     "午餐": {},
-    "拍摄": {},
+    "拍摄": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Take Photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拍摄"
+          }
+        }
+      }
+    },
     "无法连接到 endpoint：%@": {},
     "早餐": {},
     "晚餐": {},
