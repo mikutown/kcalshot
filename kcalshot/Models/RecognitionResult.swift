@@ -23,6 +23,7 @@ struct RecognitionResult: Equatable {
     /// 启发式：是否需要提醒用户核对（见 PRD F3.1）。
     var needsReview: Bool {
         recognitionConfidence < 0.7 || portionAssumed || items.count > 2
+            || items.contains { !$0.alternatives.isEmpty }
     }
 }
 
@@ -42,6 +43,32 @@ private func lenientDouble<K: CodingKey>(_ c: KeyedDecodingContainer<K>, _ key: 
 extension RecognitionResult {
     /// 模型返回的原始 JSON 结构。数值字段容忍 Double/Int/String。
     private struct Payload: Decodable {
+        /// 易混候选；数值字段同样容忍 Double/Int/String。
+        struct Alternative: Decodable {
+            var name: String
+            var caloriesPer100g: Double
+            var proteinPer100g: Double
+            var fatPer100g: Double
+            var carbsPer100g: Double
+            var healthScore: Int
+            var healthReason: String
+
+            enum CodingKeys: String, CodingKey {
+                case name, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, healthScore, healthReason
+            }
+
+            init(from decoder: Decoder) throws {
+                let c = try decoder.container(keyedBy: CodingKeys.self)
+                name = (try? c.decode(String.self, forKey: .name)) ?? ""
+                caloriesPer100g = lenientDouble(c, .caloriesPer100g) ?? 0
+                proteinPer100g = lenientDouble(c, .proteinPer100g) ?? 0
+                fatPer100g = lenientDouble(c, .fatPer100g) ?? 0
+                carbsPer100g = lenientDouble(c, .carbsPer100g) ?? 0
+                healthScore = min(max(Int((lenientDouble(c, .healthScore) ?? 5).rounded()), 1), 10)
+                healthReason = (try? c.decode(String.self, forKey: .healthReason)) ?? ""
+            }
+        }
+
         struct Item: Decodable {
             var name: String
             var grams: Double
@@ -51,9 +78,10 @@ extension RecognitionResult {
             var carbsPer100g: Double
             var healthScore: Int
             var healthReason: String
+            var alternatives: [Alternative]
 
             enum CodingKeys: String, CodingKey {
-                case name, grams, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, healthScore, healthReason
+                case name, grams, caloriesPer100g, proteinPer100g, fatPer100g, carbsPer100g, healthScore, healthReason, alternatives
             }
 
             init(from decoder: Decoder) throws {
@@ -66,6 +94,8 @@ extension RecognitionResult {
                 carbsPer100g = lenientDouble(c, .carbsPer100g) ?? 0
                 healthScore = min(max(Int((lenientDouble(c, .healthScore) ?? 5).rounded()), 1), 10)
                 healthReason = (try? c.decode(String.self, forKey: .healthReason)) ?? ""
+                alternatives = ((try? c.decode([Alternative].self, forKey: .alternatives)) ?? [])
+                    .filter { !$0.name.trimmingCharacters(in: .whitespaces).isEmpty }
             }
         }
 
@@ -104,7 +134,18 @@ extension RecognitionResult {
                 fatPer100g: $0.fatPer100g,
                 carbsPer100g: $0.carbsPer100g,
                 healthScore: $0.healthScore,
-                healthReason: $0.healthReason
+                healthReason: $0.healthReason,
+                alternatives: $0.alternatives.map {
+                    FoodAlternative(
+                        name: $0.name,
+                        caloriesPer100g: $0.caloriesPer100g,
+                        proteinPer100g: $0.proteinPer100g,
+                        fatPer100g: $0.fatPer100g,
+                        carbsPer100g: $0.carbsPer100g,
+                        healthScore: $0.healthScore,
+                        healthReason: $0.healthReason
+                    )
+                }
             )
         }
         guard !items.isEmpty else { return nil }

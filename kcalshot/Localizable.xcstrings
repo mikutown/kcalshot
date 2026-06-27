@@ -66,6 +66,7 @@
       }
     },
     "日": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -82,6 +83,7 @@
       }
     },
     "一": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -98,6 +100,7 @@
       }
     },
     "二": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -114,6 +117,7 @@
       }
     },
     "三": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -130,6 +134,7 @@
       }
     },
     "四": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -146,6 +151,7 @@
       }
     },
     "五": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -162,6 +168,7 @@
       }
     },
     "六": {
+      "extractionState": "stale",
       "localizations": {
         "en": {
           "stringUnit": {
@@ -3488,7 +3495,73 @@
           }
         }
       }
-    }
+    },
+    "%lld": {},
+    "%lld kcal": {},
+    "%lld%%": {},
+    "%lld/%lldg": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "new",
+            "value": "%1$lld/%2$lldg"
+          }
+        }
+      }
+    },
+    "%lld/10": {},
+    "%lldg": {},
+    "API Key": {},
+    "Base URL": {},
+    "Base URL 必须使用 https，以免 API key 与照片明文外发": {},
+    "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）": {},
+    "Model ID": {},
+    "cm": {},
+    "g": {},
+    "kcal": {},
+    "kg": {},
+    "也可能是": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could also be"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "也可能是"
+          }
+        }
+      }
+    },
+    "从手机相册选择": {},
+    "保存": {},
+    "加餐": {},
+    "午餐": {},
+    "拍摄": {},
+    "无法连接到 endpoint：%@": {},
+    "早餐": {},
+    "晚餐": {},
+    "服务返回错误 %lld：%@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "new",
+            "value": "服务返回错误 %1$lld：%2$@"
+          }
+        }
+      }
+    },
+    "服务返回错误状态码 %lld": {},
+    "模型未返回内容": {},
+    "模型返回的内容不是有效 JSON，请重试或更换模型": {},
+    "缺少 API Key": {},
+    "该 endpoint 未实现 /models 接口": {},
+    "返回内容无法解析": {},
+    "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）": {},
+    "鉴权失败：API Key 无效或无权限（401/403）": {}
   },
   "version": "1.0"
 }

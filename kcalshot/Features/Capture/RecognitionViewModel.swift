@@ -25,6 +25,17 @@ final class RecognitionViewModel {
         return false
     }
 
+    /// 成功结果的可写视图：供结果卡片切换易混候选后写回。
+    var successResult: RecognitionResult? {
+        get {
+            if case .success(let result) = state { return result }
+            return nil
+        }
+        set {
+            if let newValue { state = .success(newValue) }
+        }
+    }
+
     func recognize(image: UIImage, model: APIModelConfig, settings: AppSettings, correction: String? = nil) async {
         state = .recognizing
         phase = .preparing

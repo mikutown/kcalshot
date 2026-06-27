@@ -33,7 +33,15 @@ enum RecognitionPrompt {
               "fatPer100g": 数字(每100克脂肪g),
               "carbsPer100g": 数字(每100克碳水g),
               "healthScore": 1到10的整数(这种食物本身的健康程度,10最健康),
-              "healthReason": "这种食物得到该健康评分的简短理由"
+              "healthReason": "这种食物得到该健康评分的简短理由",
+              "alternatives": [
+                {
+                  "name": "易混候选的食物名称",
+                  "caloriesPer100g": 数字, "proteinPer100g": 数字,
+                  "fatPer100g": 数字, "carbsPer100g": 数字,
+                  "healthScore": 1到10的整数, "healthReason": "简短理由"
+                }
+              ]
             }
           ],
           "healthScore": 1到10的整数(整餐的综合健康程度,10最健康),
@@ -46,7 +54,8 @@ enum RecognitionPrompt {
         - \(perItemNote)
         - \(gramsNote)caloriesPer100g 等是该食物每 100 克的营养密度（与分量无关的常识值），务必符合常识。
         - \(portionNote)
-        - name、reason、assumptions 用「\(outputLanguageName)」输出。
+        - 当某项仅凭外观无法与其它常见食物可靠区分时（例如白色饮品难分牛奶/豆浆/燕麦奶，相似的主食、酱料等），不要武断选定一个：name 填最可能的一种，并把其它最可能的 1~2 种连同各自营养放入该项 alternatives，同时调低 recognitionConfidence。能明确辨认的项 alternatives 必须为空数组 []。
+        - name、reason、assumptions 与 alternatives 内的文本用「\(outputLanguageName)」输出。
         - 只返回 JSON，不要其它任何文字。
         """
     }

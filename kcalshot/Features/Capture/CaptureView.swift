@@ -332,7 +332,10 @@ struct CaptureView: View {
         case .recognizing:
             RecognizingProgressView(isPhoto: mode == .photo, phase: vm.phase)
         case .success(let result):
-            RecognitionResultCard(result: result)
+            RecognitionResultCard(result: Binding(
+                get: { vm.successResult ?? result },
+                set: { vm.successResult = $0 }
+            ))
         case .failure(let message, let rawText):
             VStack(alignment: .leading, spacing: 8) {
                 Label(message, systemImage: "exclamationmark.triangle")

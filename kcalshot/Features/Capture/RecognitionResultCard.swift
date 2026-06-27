@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RecognitionResultCard: View {
-    let result: RecognitionResult
+    @Binding var result: RecognitionResult
 
     private var modelName: String {
         result.modelUsed.isEmpty ? String(localized: "未知") : result.modelUsed
@@ -34,22 +34,28 @@ struct RecognitionResultCard: View {
 
             Divider()
 
-            VStack(alignment: .leading, spacing: 8) {
-                ForEach(result.items) { item in
-                    HStack(spacing: 8) {
-                        Text("\(item.healthScore)")
-                            .font(.caption.bold())
-                            .frame(width: 22, height: 22)
-                            .background(HealthScore.color(item.healthScore).opacity(0.18), in: Circle())
-                            .foregroundStyle(HealthScore.color(item.healthScore))
-                        Text(item.name)
-                        Text("\(Int(item.grams.rounded()))g")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Text("\(Int(item.calories.rounded())) kcal")
-                            .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(result.items.enumerated()), id: \.element.id) { index, item in
+                    VStack(alignment: .leading, spacing: 6) {
+                        HStack(spacing: 8) {
+                            Text("\(item.healthScore)")
+                                .font(.caption.bold())
+                                .frame(width: 22, height: 22)
+                                .background(HealthScore.color(item.healthScore).opacity(0.18), in: Circle())
+                                .foregroundStyle(HealthScore.color(item.healthScore))
+                            Text(item.name)
+                            Text("\(Int(item.grams.rounded()))g")
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Text("\(Int(item.calories.rounded())) kcal")
+                                .foregroundStyle(.secondary)
+                        }
+                        .font(.subheadline)
+
+                        if !item.alternatives.isEmpty {
+                            alternativeChips(for: index, item: item)
+                        }
                     }
-                    .font(.subheadline)
                 }
             }
 
@@ -91,6 +97,32 @@ struct RecognitionResultCard: View {
         .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
     }
 
+    /// 易混项的候选切换：点一下即用候选的名称与营养替换该项（克数不变）。
+    private func alternativeChips(for index: Int, item: FoodItem) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .font(.caption2)
+                    .foregroundStyle(.orange)
+                Text("也可能是").font(.caption2).foregroundStyle(.secondary)
+                ForEach(item.alternatives.indices, id: \.self) { altIndex in
+                    Button {
+                        result.items[index].selectAlternative(at: altIndex)
+                    } label: {
+                        Text(item.alternatives[altIndex].name)
+                            .font(.caption)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color.accentColor.opacity(0.12), in: Capsule())
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.leading, 30)
+        }
+    }
+
     private func infoLine(icon: String, text: String) -> some View {
         HStack(alignment: .top, spacing: 6) {
             Image(systemName: icon).foregroundStyle(.secondary)
@@ -121,10 +153,17 @@ enum HealthScore {
 }
 
 #Preview {
-    RecognitionResultCard(result: RecognitionResult(
+    RecognitionResultCard(result: .constant(RecognitionResult(
         items: [
             FoodItem(name: "米饭", grams: 150, caloriesPer100g: 130, proteinPer100g: 2.6, fatPer100g: 0.3, carbsPer100g: 28),
-            FoodItem(name: "红烧肉", grams: 120, caloriesPer100g: 375, proteinPer100g: 15, fatPer100g: 32, carbsPer100g: 5),
+            FoodItem(
+                name: "牛奶", grams: 240, caloriesPer100g: 64, proteinPer100g: 3.3, fatPer100g: 3.6, carbsPer100g: 5,
+                healthScore: 8, healthReason: "蛋白质来源",
+                alternatives: [
+                    FoodAlternative(name: "豆浆", caloriesPer100g: 31, proteinPer100g: 1.8, fatPer100g: 0.7, carbsPer100g: 3.7, healthScore: 8, healthReason: "植物蛋白"),
+                    FoodAlternative(name: "燕麦奶", caloriesPer100g: 47, proteinPer100g: 1, fatPer100g: 1.5, carbsPer100g: 7, healthScore: 7, healthReason: "含膳食纤维"),
+                ]
+            ),
         ],
         healthScore: 5,
         reason: "脂肪偏高，建议搭配蔬菜",
@@ -132,6 +171,6 @@ enum HealthScore {
         portionAssumed: true,
         assumptions: "按一份约 250g 估算",
         modelUsed: "GPT-4o"
-    ))
+    )))
     .padding()
 }
