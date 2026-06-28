@@ -61,45 +61,8 @@ struct WaterLogView: View {
             }
         }
         .sheet(isPresented: $showCustom) {
-            WaterInputSheet { context.insert(WaterEntry(amountML: $0)) }
+            WaterAmountSheet { context.insert(WaterEntry(amountML: $0)) }
         }
-    }
-}
-
-private struct WaterInputSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    @State private var amount: Double = 300
-    let onSave: (Double) -> Void
-
-    var body: some View {
-        NavigationStack {
-            Form {
-                HStack {
-                    Text("饮水量")
-                    Spacer()
-                    TextField("mL", value: $amount, format: .number)
-                        .keyboardType(.numberPad)
-                        .multilineTextAlignment(.trailing)
-                        .frame(maxWidth: 90)
-                    Text("mL").foregroundStyle(.secondary)
-                }
-            }
-            .navigationTitle("记录饮水")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
-                        onSave(amount)
-                        dismiss()
-                    }
-                    .disabled(amount <= 0)
-                }
-            }
-        }
-        .presentationDetents([.height(180)])
     }
 }
 

@@ -10,6 +10,9 @@ struct DataExportView: View {
 
     @State private var includeThumbnails = false
     @State private var backupURL: URL?
+    @State private var mealsCSV: URL?
+    @State private var weightsCSV: URL?
+    @State private var watersCSV: URL?
     @State private var showImporter = false
     @State private var pendingData: Data?
     @State private var showRestoreChoice = false
@@ -18,13 +21,13 @@ struct DataExportView: View {
     var body: some View {
         List {
             Section {
-                if let url = try? CSVExporter.exportMeals(meals) {
+                if let url = mealsCSV {
                     ShareLink(item: url) { Label("三餐记录 CSV", systemImage: "fork.knife") }
                 }
-                if let url = try? CSVExporter.exportWeights(weights) {
+                if let url = weightsCSV {
                     ShareLink(item: url) { Label("体重 CSV", systemImage: "scalemass") }
                 }
-                if let url = try? CSVExporter.exportWaters(waters) {
+                if let url = watersCSV {
                     ShareLink(item: url) { Label("饮水 CSV", systemImage: "drop") }
                 }
             } header: {
@@ -52,6 +55,7 @@ struct DataExportView: View {
         .navigationTitle("数据导出")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: includeThumbnails) { regenerateBackup() }
+        .task(id: "\(meals.count)-\(weights.count)-\(waters.count)") { regenerateCSV() }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
             handleImport(result)
         }
@@ -70,6 +74,12 @@ struct DataExportView: View {
 
     private func regenerateBackup() {
         backupURL = try? BackupCodec.exportFile(context: context, includeThumbnails: includeThumbnails)
+    }
+
+    private func regenerateCSV() {
+        mealsCSV = try? CSVExporter.exportMeals(meals)
+        weightsCSV = try? CSVExporter.exportWeights(weights)
+        watersCSV = try? CSVExporter.exportWaters(waters)
     }
 
     private func handleImport(_ result: Result<URL, Error>) {

@@ -60,8 +60,8 @@ struct WaterCard: View {
     }
 }
 
-/// 自定义饮水量输入。
-private struct WaterAmountSheet: View {
+/// 自定义饮水量输入（喝水卡片与饮水记录页共用）。
+struct WaterAmountSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var amount: Double = 300
     let onSave: (Double) -> Void

@@ -4,12 +4,17 @@ import Foundation
 enum CSVExporter {
     private static let iso = ISO8601DateFormatter()
 
-    /// 转义单个字段：含逗号/引号/换行时用引号包裹并转义内部引号。
+    /// 转义单个字段：先中和表格公式注入（=,+,-,@,制表/回车 开头的值在 Excel/Sheets 会被当公式执行），
+    /// 再在含逗号/引号/换行时用引号包裹并转义内部引号。
     private static func escape(_ field: String) -> String {
-        if field.contains(",") || field.contains("\"") || field.contains("\n") {
-            return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        var value = field
+        if let first = value.first, "=+-@\t\r".contains(first) {
+            value = "'" + value
         }
-        return field
+        if value.contains(",") || value.contains("\"") || value.contains("\n") {
+            return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return value
     }
 
     private static func row(_ fields: [String]) -> String {

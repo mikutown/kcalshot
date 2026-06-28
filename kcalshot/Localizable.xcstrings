@@ -4259,22 +4259,6 @@
         }
       }
     },
-    "开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加。": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "When enabled, each recognition samples the same photo multiple times and takes the median — more stable accuracy, but API cost and time scale with the sample count."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加。"
-          }
-        }
-      }
-    },
     "高精度识别": {
       "localizations": {
         "en": {
@@ -4319,6 +4303,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "多次分析中 %lld/%lld，将取中位数…"
+          }
+        }
+      }
+    },
+    "开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加（识别失败会自动重试，实际请求可能更多）。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When enabled, each recognition samples the same photo multiple times and takes the median — more stable accuracy, but API cost and time scale with the sample count (failed attempts auto-retry, so actual requests may be higher)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加（识别失败会自动重试，实际请求可能更多）。"
           }
         }
       }

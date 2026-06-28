@@ -33,7 +33,7 @@ struct SettingsView: View {
                 } header: {
                     Text("识别")
                 } footer: {
-                    Text("开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加。")
+                    Text("开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加（识别失败会自动重试，实际请求可能更多）。")
                 }
                 Section("每日目标") {
                     NavigationLink {
