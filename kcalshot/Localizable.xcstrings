@@ -3552,9 +3552,54 @@
         }
       }
     },
-    "保存": {},
-    "加餐": {},
-    "午餐": {},
+    "保存": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        }
+      }
+    },
+    "加餐": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Snack"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加餐"
+          }
+        }
+      }
+    },
+    "午餐": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lunch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "午餐"
+          }
+        }
+      }
+    },
     "拍摄": {
       "localizations": {
         "en": {
@@ -3572,8 +3617,38 @@
       }
     },
     "无法连接到 endpoint：%@": {},
-    "早餐": {},
-    "晚餐": {},
+    "早餐": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Breakfast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "早餐"
+          }
+        }
+      }
+    },
+    "晚餐": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dinner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "晚餐"
+          }
+        }
+      }
+    },
     "服务返回错误 %lld：%@": {
       "localizations": {
         "zh-Hans": {
