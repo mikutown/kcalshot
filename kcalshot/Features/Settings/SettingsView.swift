@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Query private var models: [APIModelConfig]
     @Query private var goals: [DailyGoal]
     @Query(sort: \WeightEntry.date, order: .reverse) private var weights: [WeightEntry]
+    @Query private var waters: [WaterEntry]
 
     var body: some View {
         NavigationStack {
@@ -22,6 +23,18 @@ struct SettingsView: View {
                         LabeledContent("模型管理", value: modelSummary)
                     }
                 }
+                Section {
+                    Toggle("高精度模式", isOn: highPrecision)
+                    if settings.highPrecisionMode {
+                        Stepper(value: precisionSamples, in: 2...5) {
+                            LabeledContent("采样次数", value: "\(settings.precisionSampleCount)")
+                        }
+                    }
+                } header: {
+                    Text("识别")
+                } footer: {
+                    Text("开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加。")
+                }
                 Section("每日目标") {
                     NavigationLink {
                         GoalSettingsView()
@@ -33,6 +46,14 @@ struct SettingsView: View {
                     } label: {
                         LabeledContent("体重记录", value: weightSummary)
                     }
+                    NavigationLink {
+                        WaterLogView()
+                    } label: {
+                        LabeledContent("饮水记录", value: waterSummary)
+                    }
+                    Stepper(value: waterTarget, in: 500...5000, step: 250) {
+                        LabeledContent("饮水目标", value: "\(Int(settings.waterTargetML)) mL")
+                    }
                 }
                 Section {
                     Toggle("同步到 Apple 健康", isOn: healthToggle)
@@ -43,6 +64,13 @@ struct SettingsView: View {
                     Text(HealthKitManager.isAvailable
                          ? "开启后，每日摄入总热量将写入 Apple 健康；同时读取活动消耗计入当日预算、读取体重用于体重趋势。"
                          : "此设备不支持 HealthKit。")
+                }
+                Section("数据") {
+                    NavigationLink {
+                        DataExportView()
+                    } label: {
+                        Text("导出与备份")
+                    }
                 }
                 Section("关于") {
                     NavigationLink {
@@ -75,6 +103,32 @@ struct SettingsView: View {
     private var weightSummary: String {
         guard let latest = weights.first else { return String(localized: "未记录") }
         return String(format: "%.1f kg", latest.weightKg)
+    }
+
+    private var waterSummary: String {
+        let today = waters.onSameDay(as: .now).totalML
+        return "\(Int(today.rounded())) mL"
+    }
+
+    private var waterTarget: Binding<Double> {
+        Binding(
+            get: { settings.waterTargetML },
+            set: { settings.waterTargetML = $0 }
+        )
+    }
+
+    private var highPrecision: Binding<Bool> {
+        Binding(
+            get: { settings.highPrecisionMode },
+            set: { settings.highPrecisionMode = $0 }
+        )
+    }
+
+    private var precisionSamples: Binding<Int> {
+        Binding(
+            get: { settings.precisionSampleCount },
+            set: { settings.precisionSampleCount = $0 }
+        )
     }
 
     private var healthToggle: Binding<Bool> {

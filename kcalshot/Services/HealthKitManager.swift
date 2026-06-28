@@ -7,6 +7,7 @@ enum HealthKitManager {
     private static let energyType = HKQuantityType(.dietaryEnergyConsumed)
     private static let activeEnergyType = HKQuantityType(.activeEnergyBurned)
     private static let bodyMassType = HKQuantityType(.bodyMass)
+    private static let waterType = HKQuantityType(.dietaryWater)
 
     static var isAvailable: Bool { HKHealthStore.isHealthDataAvailable() }
 
@@ -15,7 +16,7 @@ enum HealthKitManager {
         guard isAvailable else { return false }
         do {
             try await store.requestAuthorization(
-                toShare: [energyType],
+                toShare: [energyType, waterType],
                 read: [activeEnergyType, bodyMassType]
             )
             return store.authorizationStatus(for: energyType) == .sharingAuthorized
@@ -94,6 +95,37 @@ enum HealthKitManager {
         // 样本时间放在当天中午，确保归入该自然日。
         let sampleDate = cal.date(bySettingHour: 12, minute: 0, second: 0, of: start) ?? start
         let sample = HKQuantitySample(type: energyType, quantity: quantity, start: sampleDate, end: sampleDate)
+        try? await store.save(sample)
+    }
+
+    static var isWaterAuthorized: Bool {
+        isAvailable && store.authorizationStatus(for: waterType) == .sharingAuthorized
+    }
+
+    /// 同步某天的饮水总量（毫升）：删除本 App 当天写入的旧样本，再写入一条新的总量。幂等。
+    static func syncDailyWater(_ ml: Double, for date: Date) async {
+        guard isWaterAuthorized else { return }
+        let cal = Calendar.current
+        let start = cal.startOfDay(for: date)
+        guard let end = cal.date(byAdding: .day, value: 1, to: start) else { return }
+
+        let predicate = HKSamplePredicate.quantitySample(
+            type: waterType,
+            predicate: HKQuery.predicateForSamples(withStart: start, end: end)
+        )
+        let descriptor = HKSampleQueryDescriptor(predicates: [predicate], sortDescriptors: [])
+        let mine = HKSource.default()
+        if let existing = try? await descriptor.result(for: store) {
+            let ours = existing.filter { $0.sourceRevision.source == mine }
+            if !ours.isEmpty {
+                try? await store.delete(ours)
+            }
+        }
+
+        guard ml > 0 else { return }
+        let quantity = HKQuantity(unit: .literUnit(with: .milli), doubleValue: ml)
+        let sampleDate = cal.date(bySettingHour: 12, minute: 0, second: 0, of: start) ?? start
+        let sample = HKQuantitySample(type: waterType, quantity: quantity, start: sampleDate, end: sampleDate)
         try? await store.save(sample)
     }
 }

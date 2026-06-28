@@ -1,0 +1,58 @@
+import Foundation
+
+/// 把记录导出为 CSV 临时文件，供系统分享面板使用。
+enum CSVExporter {
+    private static let iso = ISO8601DateFormatter()
+
+    /// 转义单个字段：含逗号/引号/换行时用引号包裹并转义内部引号。
+    private static func escape(_ field: String) -> String {
+        if field.contains(",") || field.contains("\"") || field.contains("\n") {
+            return "\"" + field.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+        }
+        return field
+    }
+
+    private static func row(_ fields: [String]) -> String {
+        fields.map(escape).joined(separator: ",")
+    }
+
+    private static func write(_ content: String, filename: String) throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try content.write(to: url, atomically: true, encoding: .utf8)
+        return url
+    }
+
+    static func exportMeals(_ entries: [MealEntry]) throws -> URL {
+        var lines = [row(["date", "meal", "name", "calories", "protein", "fat", "carbs", "healthScore", "note"])]
+        for e in entries.sorted(by: { $0.date < $1.date }) {
+            lines.append(row([
+                iso.string(from: e.date),
+                e.mealType.rawValue,
+                e.name,
+                String(Int(e.calories.rounded())),
+                String(Int(e.protein.rounded())),
+                String(Int(e.fat.rounded())),
+                String(Int(e.carbs.rounded())),
+                String(e.healthScore),
+                e.note,
+            ]))
+        }
+        return try write(lines.joined(separator: "\n"), filename: "kcalshot-meals.csv")
+    }
+
+    static func exportWeights(_ entries: [WeightEntry]) throws -> URL {
+        var lines = [row(["date", "weightKg"])]
+        for e in entries.sorted(by: { $0.date < $1.date }) {
+            lines.append(row([iso.string(from: e.date), String(format: "%.1f", e.weightKg)]))
+        }
+        return try write(lines.joined(separator: "\n"), filename: "kcalshot-weights.csv")
+    }
+
+    static func exportWaters(_ entries: [WaterEntry]) throws -> URL {
+        var lines = [row(["date", "amountML"])]
+        for e in entries.sorted(by: { $0.date < $1.date }) {
+            lines.append(row([iso.string(from: e.date), String(Int(e.amountML.rounded()))]))
+        }
+        return try write(lines.joined(separator: "\n"), filename: "kcalshot-water.csv")
+    }
+}

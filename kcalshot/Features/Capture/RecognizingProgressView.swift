@@ -4,11 +4,15 @@ import SwiftUI
 struct RecognizingProgressView: View {
     let isPhoto: Bool
     let phase: RecognitionViewModel.Phase
+    var samplesDone: Int = 0
+    var samplesTotal: Int = 0
 
     private var isWaiting: Bool {
         if case .waiting = phase { return true }
         return false
     }
+
+    private var isMultiSample: Bool { samplesTotal > 1 }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -40,11 +44,16 @@ struct RecognizingProgressView: View {
     }
 
     private var modelCard: some View {
-        progressCard("模型识别", systemImage: "sparkles", active: isWaiting) {
+        progressCard(isMultiSample ? "高精度识别" : "模型识别", systemImage: "sparkles", active: isWaiting) {
             if isWaiting {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("正在识别，分析食物与营养…").font(.caption).foregroundStyle(.secondary)
+                    if isMultiSample {
+                        Text("多次分析中 \(samplesDone)/\(samplesTotal)，将取中位数…")
+                            .font(.caption).foregroundStyle(.secondary)
+                    } else {
+                        Text("正在识别，分析食物与营养…").font(.caption).foregroundStyle(.secondary)
+                    }
                 }
             } else {
                 Text("等待图片上传完成…").font(.caption).foregroundStyle(.secondary)

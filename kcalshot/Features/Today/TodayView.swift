@@ -7,16 +7,21 @@ struct TodayView: View {
     @Environment(AppSettings.self) private var settings
     @Query(sort: \MealEntry.date, order: .reverse) private var allEntries: [MealEntry]
     @Query private var goals: [DailyGoal]
+    @Query(sort: \WaterEntry.date, order: .reverse) private var allWater: [WaterEntry]
     @State private var showCapture = false
     @State private var captureMode: CaptureView.InputMode = .photo
     @State private var showGoalSheet = false
     @State private var showGoalPrompt = false
     @State private var didCheckGoal = false
     @State private var showSourceDialog = false
+    @State private var showWaterLog = false
+    @State private var showQuickAdd = false
     @State private var pickedImage: UIImage?
     @State private var exercise: Double = 0
 
     private var todayEntries: [MealEntry] { allEntries.onSameDay(as: .now) }
+    private var todayWater: [WaterEntry] { allWater.onSameDay(as: .now) }
+    private var todayWaterTotal: Double { todayWater.totalML }
 
     private var hasGoal: Bool { (goals.first?.targetCalories ?? 0) > 0 }
 
@@ -40,14 +45,25 @@ struct TodayView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if todayEntries.isEmpty {
+                if todayEntries.isEmpty && todayWaterTotal == 0 {
                     emptyState
                 } else {
                     entryList
                 }
             }
+            .navigationDestination(isPresented: $showWaterLog) {
+                WaterLogView()
+            }
             .navigationTitle("今天")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showQuickAdd = true
+                    } label: {
+                        Image(systemName: "bolt.fill")
+                    }
+                    .accessibilityLabel("快速添加")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Image(systemName: "camera.fill")
                         .foregroundStyle(Color.accentColor)
@@ -68,6 +84,9 @@ struct TodayView: View {
         .sheet(isPresented: $showCapture) {
             CaptureView(mode: captureMode, initialImage: pickedImage)
         }
+        .sheet(isPresented: $showQuickAdd) {
+            QuickAddView()
+        }
         .sheet(isPresented: $showGoalSheet) {
             NavigationStack { GoalSettingsView(showsDone: true) }
         }
@@ -85,6 +104,10 @@ struct TodayView: View {
         }
         .task(id: settings.healthSyncEnabled) {
             exercise = await HealthKitManager.activeEnergy(for: .now)
+        }
+        .task(id: "\(settings.healthSyncEnabled)-water-\(Int(todayWaterTotal.rounded()))") {
+            guard settings.healthSyncEnabled else { return }
+            await HealthKitManager.syncDailyWater(todayWaterTotal, for: .now)
         }
         .alert("设置每日目标", isPresented: $showGoalPrompt) {
             Button("前往设置") { showGoalSheet = true }
@@ -108,13 +131,29 @@ struct TodayView: View {
                 Label("文字记录", systemImage: "text.cursor")
             }
             .buttonStyle(.bordered)
+            Button { addWater(250) } label: {
+                Label("记录一杯水", systemImage: "drop.fill")
+            }
+            .buttonStyle(.bordered)
         }
+    }
+
+    private func addWater(_ ml: Double) {
+        context.insert(WaterEntry(amountML: ml))
     }
 
     private var entryList: some View {
         List {
             Section {
                 DailySummaryCard(entries: todayEntries, goal: goals.first, exercise: exercise)
+            }
+            Section {
+                WaterCard(
+                    totalML: todayWaterTotal,
+                    targetML: settings.waterTargetML,
+                    onAdd: addWater,
+                    onOpenLog: { showWaterLog = true }
+                )
             }
             ForEach(todayEntries.groupedByMeal(), id: \.meal) { group in
                 Section(group.meal.displayName) {

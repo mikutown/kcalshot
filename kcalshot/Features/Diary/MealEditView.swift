@@ -11,6 +11,7 @@ struct MealEditView: View {
     /// 保存/删除后回调（用于关闭外层识别流程）。
     var onFinish: (() -> Void)?
 
+    @Query private var favorites: [FavoriteFood]
     @State private var reasonPopup: String?
 
     var body: some View {
@@ -142,8 +143,34 @@ struct MealEditView: View {
                 }
                 .buttonStyle(.borderless)
                 Spacer()
+                Button {
+                    toggleFavorite(item.wrappedValue)
+                } label: {
+                    Image(systemName: isFavorited(item.wrappedValue) ? "star.fill" : "star")
+                        .foregroundStyle(isFavorited(item.wrappedValue) ? .yellow : .secondary)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(isFavorited(item.wrappedValue) ? "取消收藏" : "收藏为常吃")
             }
             .font(.subheadline)
+        }
+    }
+
+    private func isFavorited(_ item: FoodItem) -> Bool {
+        let key = item.name.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !key.isEmpty else { return false }
+        return favorites.contains { $0.name.trimmingCharacters(in: .whitespaces).lowercased() == key }
+    }
+
+    private func toggleFavorite(_ item: FoodItem) {
+        let key = item.name.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !key.isEmpty else { return }
+        if let existing = favorites.first(where: {
+            $0.name.trimmingCharacters(in: .whitespaces).lowercased() == key
+        }) {
+            context.delete(existing)
+        } else {
+            context.insert(FavoriteFood(from: item))
         }
     }
 

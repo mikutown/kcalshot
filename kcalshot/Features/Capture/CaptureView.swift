@@ -330,7 +330,12 @@ struct CaptureView: View {
         case .idle:
             EmptyView()
         case .recognizing:
-            RecognizingProgressView(isPhoto: mode == .photo, phase: vm.phase)
+            RecognizingProgressView(
+                isPhoto: mode == .photo,
+                phase: vm.phase,
+                samplesDone: vm.samplesDone,
+                samplesTotal: vm.samplesTotal
+            )
         case .success(let result):
             RecognitionResultCard(result: Binding(
                 get: { vm.successResult ?? result },
