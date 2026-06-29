@@ -20,3 +20,30 @@ enum AppLanguage: String {
         }
     }
 }
+
+/// 用户在设置里选择的界面语言偏好（含「跟随系统」退路）。
+/// 通过写入 AppleLanguages 生效，需重启 App 后全部文案（含 String(localized:)）才一致切换。
+enum AppLanguagePreference: String, CaseIterable, Identifiable {
+    case system
+    case chinese
+    case english
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .system: return String(localized: "跟随系统")
+        case .chinese: return "简体中文"
+        case .english: return "English"
+        }
+    }
+
+    /// 写进 AppleLanguages 的语言码；system 返回 nil 表示移除覆盖、回到系统语言。
+    var languageCode: String? {
+        switch self {
+        case .system: return nil
+        case .chinese: return "zh-Hans"
+        case .english: return "en"
+        }
+    }
+}

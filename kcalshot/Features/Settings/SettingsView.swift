@@ -8,6 +8,7 @@ struct SettingsView: View {
     @Query(sort: \WeightEntry.date, order: .reverse) private var weights: [WeightEntry]
     @Query private var waters: [WaterEntry]
     @Query private var tokenRecords: [TokenUsage]
+    @State private var showRestartAlert = false
 
     var body: some View {
         NavigationStack {
@@ -71,6 +72,17 @@ struct SettingsView: View {
                          ? "开启后，每日摄入总热量将写入 Apple 健康；同时读取活动消耗计入当日预算、读取体重用于体重趋势。"
                          : "此设备不支持 HealthKit。")
                 }
+                Section {
+                    Picker("语言", selection: languageSelection) {
+                        ForEach(AppLanguagePreference.allCases) { lang in
+                            Text(lang.displayName).tag(lang)
+                        }
+                    }
+                } header: {
+                    Text("界面")
+                } footer: {
+                    Text("更改语言需重启 App 后完整生效。")
+                }
                 Section("数据") {
                     NavigationLink {
                         DataExportView()
@@ -88,7 +100,23 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("设置")
+            .alert("重启后生效", isPresented: $showRestartAlert) {
+                Button("好", role: .cancel) {}
+            } message: {
+                Text("语言更改将在下次启动 App 时完整生效，请手动关闭并重新打开 App。")
+            }
         }
+    }
+
+    private var languageSelection: Binding<AppLanguagePreference> {
+        Binding(
+            get: { settings.appLanguage },
+            set: { newValue in
+                guard newValue != settings.appLanguage else { return }
+                settings.appLanguage = newValue
+                showRestartAlert = true
+            }
+        )
     }
 
     private var globalSummary: String {

@@ -10,6 +10,7 @@ final class AppSettings {
         static let waterTargetML = "water_target_ml"
         static let highPrecisionMode = "high_precision_mode"
         static let precisionSampleCount = "precision_sample_count"
+        static let appLanguage = "app_language"
     }
 
     var globalBaseURL: String {
@@ -24,6 +25,18 @@ final class AppSettings {
     /// 每日饮水目标（毫升）。
     var waterTargetML: Double {
         didSet { UserDefaults.standard.set(waterTargetML, forKey: Keys.waterTargetML) }
+    }
+
+    /// 界面语言偏好。改动写入 AppleLanguages，重启 App 后整套文案才一致生效。
+    var appLanguage: AppLanguagePreference {
+        didSet {
+            UserDefaults.standard.set(appLanguage.rawValue, forKey: Keys.appLanguage)
+            if let code = appLanguage.languageCode {
+                UserDefaults.standard.set([code], forKey: "AppleLanguages")
+            } else {
+                UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+            }
+        }
     }
 
     /// 高精度模式：同一张照片多次采样后取中位数聚合（成本/延迟翻倍）。
@@ -51,6 +64,8 @@ final class AppSettings {
         // 聚合取中位数，奇数采样才能干净剔除离群值，故只允许 3 或 5；旧的偶数/越界值归一。
         let storedSamples = UserDefaults.standard.integer(forKey: Keys.precisionSampleCount)
         self.precisionSampleCount = storedSamples >= 4 ? 5 : 3
+        let storedLang = UserDefaults.standard.string(forKey: Keys.appLanguage)
+        self.appLanguage = storedLang.flatMap(AppLanguagePreference.init) ?? .system
     }
 
     /// 解析某模型实际生效的 base_url 与 key（覆盖优先，否则用全局）。
