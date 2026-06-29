@@ -4576,6 +4576,22 @@
           }
         }
       }
+    },
+    "%@ · 输入 %lld / 输出 %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · in %lld / out %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ · 输入 %lld / 输出 %lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
