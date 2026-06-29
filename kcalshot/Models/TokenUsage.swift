@@ -73,11 +73,4 @@ extension Array where Element == TokenUsage {
     }
 
     var totalTokens: Int { reduce(0) { $0 + $1.totalTokens } }
-
-    /// 按模型显示名分组并合计 token，总量降序。
-    func groupedByModel() -> [(model: String, total: Int)] {
-        let groups = Dictionary(grouping: self) { $0.modelDisplay }
-        return groups.map { ($0.key, $0.value.totalTokens) }
-            .sorted { $0.total > $1.total }
-    }
 }

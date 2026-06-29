@@ -59,8 +59,8 @@ struct DataExportView: View {
         }
         .navigationTitle("数据导出")
         .navigationBarTitleDisplayMode(.inline)
-        .task(id: includeThumbnails) { regenerateBackup() }
-        .task(id: "\(meals.count)-\(weights.count)-\(waters.count)-\(tokens.count)") { regenerateCSV() }
+        .task(id: "\(includeThumbnails)-\(contentFingerprint)") { await regenerateBackup() }
+        .task(id: contentFingerprint) { await regenerateCSV() }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
             handleImport(result)
         }
@@ -77,15 +77,25 @@ struct DataExportView: View {
         } message: { Text($0) }
     }
 
-    private func regenerateBackup() {
-        backupURL = try? BackupCodec.exportFile(context: context, includeThumbnails: includeThumbnails)
+    /// 随内容（不只是条数）变化的指纹：编辑已有记录也会触发 CSV/备份重算，避免分享到陈旧文件。
+    private var contentFingerprint: Int {
+        var h = Hasher()
+        for m in meals { h.combine(m.date); h.combine(m.name); h.combine(m.calories); h.combine(m.note) }
+        for w in weights { h.combine(w.date); h.combine(w.weightKg) }
+        for w in waters { h.combine(w.date); h.combine(w.amountML) }
+        for t in tokens { h.combine(t.date); h.combine(t.totalTokens) }
+        return h.finalize()
     }
 
-    private func regenerateCSV() {
-        mealsCSV = try? CSVExporter.exportMeals(meals)
-        weightsCSV = try? CSVExporter.exportWeights(weights)
-        watersCSV = try? CSVExporter.exportWaters(waters)
-        tokensCSV = try? CSVExporter.exportTokens(tokens)
+    private func regenerateBackup() async {
+        backupURL = try? await BackupCodec.exportFile(context: context, includeThumbnails: includeThumbnails)
+    }
+
+    private func regenerateCSV() async {
+        mealsCSV = try? await CSVExporter.exportMeals(meals)
+        weightsCSV = try? await CSVExporter.exportWeights(weights)
+        watersCSV = try? await CSVExporter.exportWaters(waters)
+        tokensCSV = try? await CSVExporter.exportTokens(tokens)
     }
 
     private func handleImport(_ result: Result<URL, Error>) {

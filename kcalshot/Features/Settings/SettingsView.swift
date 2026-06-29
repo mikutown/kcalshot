@@ -27,7 +27,7 @@ struct SettingsView: View {
                 Section {
                     Toggle("高精度模式", isOn: highPrecision)
                     if settings.highPrecisionMode {
-                        Stepper(value: precisionSamples, in: 2...5) {
+                        Stepper(value: precisionSamples, in: 3...5, step: 2) {
                             LabeledContent("采样次数", value: "\(settings.precisionSampleCount)")
                         }
                     }

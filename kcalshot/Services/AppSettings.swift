@@ -48,8 +48,9 @@ final class AppSettings {
         let storedTarget = UserDefaults.standard.double(forKey: Keys.waterTargetML)
         self.waterTargetML = storedTarget > 0 ? storedTarget : 2000
         self.highPrecisionMode = UserDefaults.standard.bool(forKey: Keys.highPrecisionMode)
+        // 聚合取中位数，奇数采样才能干净剔除离群值，故只允许 3 或 5；旧的偶数/越界值归一。
         let storedSamples = UserDefaults.standard.integer(forKey: Keys.precisionSampleCount)
-        self.precisionSampleCount = storedSamples > 0 ? storedSamples : 3
+        self.precisionSampleCount = storedSamples >= 4 ? 5 : 3
     }
 
     /// 解析某模型实际生效的 base_url 与 key（覆盖优先，否则用全局）。

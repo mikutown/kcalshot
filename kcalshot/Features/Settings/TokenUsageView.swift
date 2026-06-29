@@ -6,20 +6,37 @@ struct TokenUsageView: View {
     @Environment(\.modelContext) private var context
     @Query(sort: \TokenUsage.date, order: .reverse) private var records: [TokenUsage]
 
-    private var todayTotal: Int { records.onSameDay(as: .now).totalTokens }
-    private var cumulativeTotal: Int { records.totalTokens }
+    private struct Stats {
+        var today = 0
+        var cumulative = 0
+        var byModel: [(model: String, total: Int)] = []
+        var byDay: [(day: Date, total: Int, records: [TokenUsage])] = []
+    }
 
-    private var byDay: [(day: Date, total: Int, records: [TokenUsage])] {
+    /// 一次遍历算出全部汇总，避免每次渲染重复多趟 Dictionary 分组。records 已按日期倒序，分组内顺序无需再排。
+    private func makeStats() -> Stats {
         let cal = Calendar.current
-        let groups = Dictionary(grouping: records) { cal.startOfDay(for: $0.date) }
-        return groups.keys.sorted(by: >).map { day in
-            let dayRecords = groups[day]!.sorted { $0.date > $1.date }
-            return (day, dayRecords.totalTokens, dayRecords)
+        let today = cal.startOfDay(for: .now)
+        var stats = Stats()
+        var modelTotals: [String: Int] = [:]
+        var dayGroups: [Date: [TokenUsage]] = [:]
+        for r in records {
+            stats.cumulative += r.totalTokens
+            let day = cal.startOfDay(for: r.date)
+            if day == today { stats.today += r.totalTokens }
+            modelTotals[r.modelDisplay, default: 0] += r.totalTokens
+            dayGroups[day, default: []].append(r)
         }
+        stats.byModel = modelTotals.map { ($0.key, $0.value) }.sorted { $0.1 > $1.1 }
+        stats.byDay = dayGroups.keys.sorted(by: >).map { day in
+            (day, dayGroups[day]!.totalTokens, dayGroups[day]!)
+        }
+        return stats
     }
 
     var body: some View {
-        List {
+        let stats = makeStats()
+        return List {
             if records.isEmpty {
                 ContentUnavailableView(
                     "暂无 Token 记录",
@@ -28,17 +45,17 @@ struct TokenUsageView: View {
                 )
             } else {
                 Section("合计") {
-                    LabeledContent("今日", value: "\(todayTotal)")
-                    LabeledContent("累计", value: "\(cumulativeTotal)")
+                    LabeledContent("今日", value: "\(stats.today)")
+                    LabeledContent("累计", value: "\(stats.cumulative)")
                 }
 
                 Section("按模型") {
-                    ForEach(records.groupedByModel(), id: \.model) { group in
+                    ForEach(stats.byModel, id: \.model) { group in
                         LabeledContent(group.model, value: "\(group.total)")
                     }
                 }
 
-                ForEach(byDay, id: \.day) { group in
+                ForEach(stats.byDay, id: \.day) { group in
                     Section {
                         ForEach(group.records) { record in
                             row(record)
@@ -77,10 +94,16 @@ struct TokenUsageView: View {
                 Spacer()
                 Text("\(record.totalTokens)").fontWeight(.medium)
             }
-            Text("\(record.modelDisplay) · 输入 \(record.promptTokens) / 输出 \(record.completionTokens)")
+            // 部分中转站只回总量、不回输入/输出明细，这时省略「输入 0 / 输出 0」以免误导。
+            Text(breakdown(record))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+    }
+
+    private func breakdown(_ record: TokenUsage) -> String {
+        guard record.promptTokens > 0 || record.completionTokens > 0 else { return record.modelDisplay }
+        return String(localized: "\(record.modelDisplay) · 输入 \(record.promptTokens) / 输出 \(record.completionTokens)")
     }
 }
 

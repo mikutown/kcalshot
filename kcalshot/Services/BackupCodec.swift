@@ -96,6 +96,11 @@ enum BackupCodec {
     // MARK: - 导出
 
     static func export(context: ModelContext, includeThumbnails: Bool) throws -> Data {
+        try encode(makeBackup(context: context, includeThumbnails: includeThumbnails))
+    }
+
+    /// 从 SwiftData 取数并映射为可 Sendable 的 DTO 快照。必须在 context 所在线程（主线程）调用。
+    private static func makeBackup(context: ModelContext, includeThumbnails: Bool) -> Backup {
         let meals = (try? context.fetch(FetchDescriptor<MealEntry>())) ?? []
         let goals = (try? context.fetch(FetchDescriptor<DailyGoal>())) ?? []
         let weights = (try? context.fetch(FetchDescriptor<WeightEntry>())) ?? []
@@ -140,17 +145,25 @@ enum BackupCodec {
             }
         )
 
+        return backup
+    }
+
+    private static func encode(_ backup: Backup) throws -> Data {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
         return try encoder.encode(backup)
     }
 
-    static func exportFile(context: ModelContext, includeThumbnails: Bool) throws -> URL {
-        let data = try export(context: context, includeThumbnails: includeThumbnails)
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent("kcalshot-backup.json")
-        try data.write(to: url)
-        return url
+    static func exportFile(context: ModelContext, includeThumbnails: Bool) async throws -> URL {
+        // 取数在主线程（绑定 context），编码与写盘是 CPU/IO 密集，放到后台线程避免卡顿。
+        let backup = makeBackup(context: context, includeThumbnails: includeThumbnails)
+        return try await Task.detached(priority: .utility) {
+            let data = try encode(backup)
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent("kcalshot-backup.json")
+            try data.write(to: url)
+            return url
+        }.value
     }
 
     // MARK: - 恢复

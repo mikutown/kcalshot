@@ -21,13 +21,16 @@ enum CSVExporter {
         fields.map(escape).joined(separator: ",")
     }
 
-    private static func write(_ content: String, filename: String) throws -> URL {
-        let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
-        try content.write(to: url, atomically: true, encoding: .utf8)
-        return url
+    /// 写盘是磁盘 I/O，放到后台优先级线程，避免在主线程造成卡顿。字符串拼装在调用方（主线程）完成。
+    private static func write(_ content: String, filename: String) async throws -> URL {
+        try await Task.detached(priority: .utility) {
+            let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+            try content.write(to: url, atomically: true, encoding: .utf8)
+            return url
+        }.value
     }
 
-    static func exportMeals(_ entries: [MealEntry]) throws -> URL {
+    static func exportMeals(_ entries: [MealEntry]) async throws -> URL {
         var lines = [row(["date", "meal", "name", "calories", "protein", "fat", "carbs", "healthScore", "note"])]
         for e in entries.sorted(by: { $0.date < $1.date }) {
             lines.append(row([
@@ -42,26 +45,26 @@ enum CSVExporter {
                 e.note,
             ]))
         }
-        return try write(lines.joined(separator: "\n"), filename: "kcalshot-meals.csv")
+        return try await write(lines.joined(separator: "\n"), filename: "kcalshot-meals.csv")
     }
 
-    static func exportWeights(_ entries: [WeightEntry]) throws -> URL {
+    static func exportWeights(_ entries: [WeightEntry]) async throws -> URL {
         var lines = [row(["date", "weightKg"])]
         for e in entries.sorted(by: { $0.date < $1.date }) {
             lines.append(row([iso.string(from: e.date), String(format: "%.1f", e.weightKg)]))
         }
-        return try write(lines.joined(separator: "\n"), filename: "kcalshot-weights.csv")
+        return try await write(lines.joined(separator: "\n"), filename: "kcalshot-weights.csv")
     }
 
-    static func exportWaters(_ entries: [WaterEntry]) throws -> URL {
+    static func exportWaters(_ entries: [WaterEntry]) async throws -> URL {
         var lines = [row(["date", "amountML"])]
         for e in entries.sorted(by: { $0.date < $1.date }) {
             lines.append(row([iso.string(from: e.date), String(Int(e.amountML.rounded()))]))
         }
-        return try write(lines.joined(separator: "\n"), filename: "kcalshot-water.csv")
+        return try await write(lines.joined(separator: "\n"), filename: "kcalshot-water.csv")
     }
 
-    static func exportTokens(_ entries: [TokenUsage]) throws -> URL {
+    static func exportTokens(_ entries: [TokenUsage]) async throws -> URL {
         var lines = [row(["date", "model", "prompt", "completion", "total", "kind"])]
         for e in entries.sorted(by: { $0.date < $1.date }) {
             lines.append(row([
@@ -73,6 +76,6 @@ enum CSVExporter {
                 e.kindRaw,
             ]))
         }
-        return try write(lines.joined(separator: "\n"), filename: "kcalshot-tokens.csv")
+        return try await write(lines.joined(separator: "\n"), filename: "kcalshot-tokens.csv")
     }
 }
