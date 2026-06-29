@@ -27,6 +27,7 @@ struct CaptureView: View {
     @State private var showSourceDialog = false
     @State private var vm = RecognitionViewModel()
     @State private var draft: SaveDraft?
+    @FocusState private var textFieldFocused: Bool
 
     /// 待保存草稿（Identifiable，配合 .sheet(item:) 避免空白页竞态）。
     private struct SaveDraft: Identifiable {
@@ -186,6 +187,7 @@ struct CaptureView: View {
             Text("请描述这一餐的食物与大致分量")
                 .font(.subheadline).foregroundStyle(.secondary)
             TextEditor(text: $textDescription)
+                .focused($textFieldFocused)
                 .frame(minHeight: 130)
                 .scrollContentBackground(.hidden)
                 .padding(8)
@@ -273,6 +275,7 @@ struct CaptureView: View {
     }
 
     private func runRecognition() async {
+        textFieldFocused = false
         guard let model = selectedModel else { return }
         switch mode {
         case .photo:
