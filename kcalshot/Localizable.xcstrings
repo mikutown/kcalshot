@@ -173,7 +173,22 @@
         }
       }
     },
-    "API Key": {},
+    "API Key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        }
+      }
+    },
     "API 设置": {
       "localizations": {
         "en": {
@@ -190,9 +205,54 @@
         }
       }
     },
-    "Base URL": {},
-    "Base URL 必须使用 https，以免 API key 与照片明文外发": {},
-    "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）": {},
+    "Base URL": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL"
+          }
+        }
+      }
+    },
+    "Base URL 必须使用 https，以免 API key 与照片明文外发": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL must use https, otherwise the API key and photos would be sent in plaintext."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL 必须使用 https，以免 API key 与照片明文外发"
+          }
+        }
+      }
+    },
+    "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invalid Base URL. Please check the format (e.g. https://api.openai.com/v1)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Base URL 无效，请检查格式（例如 https://api.openai.com/v1）"
+          }
+        }
+      }
+    },
     "cm": {},
     "CSV 便于在表格软件中查看，不含图片。": {
       "localizations": {
@@ -2141,7 +2201,22 @@
         }
       }
     },
-    "无法连接到 endpoint：%@": {},
+    "无法连接到 endpoint：%@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cannot reach the endpoint: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连接到 endpoint：%@"
+          }
+        }
+      }
+    },
     "日": {
       "extractionState": "stale",
       "localizations": {
@@ -2259,13 +2334,34 @@
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
-            "state": "new",
-            "value": "服务返回错误 %1$lld：%2$@"
+            "state": "translated",
+            "value": "服务返回错误 %lld：%@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service error %lld: %@"
           }
         }
       }
     },
-    "服务返回错误状态码 %lld": {},
+    "服务返回错误状态码 %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Service returned error status %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务返回错误状态码 %lld"
+          }
+        }
+      }
+    },
     "未知": {
       "localizations": {
         "en": {
@@ -2394,7 +2490,22 @@
         }
       }
     },
-    "模型未返回内容": {},
+    "模型未返回内容": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model returned no content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型未返回内容"
+          }
+        }
+      }
+    },
     "模型管理": {
       "localizations": {
         "en": {
@@ -2427,7 +2538,22 @@
         }
       }
     },
-    "模型返回的内容不是有效 JSON，请重试或更换模型": {},
+    "模型返回的内容不是有效 JSON，请重试或更换模型": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The model's response was not valid JSON. Please retry or switch models."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模型返回的内容不是有效 JSON，请重试或更换模型"
+          }
+        }
+      }
+    },
     "正在测试…": {
       "localizations": {
         "en": {
@@ -3036,7 +3162,22 @@
         }
       }
     },
-    "缺少 API Key": {},
+    "缺少 API Key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Missing API Key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "缺少 API Key"
+          }
+        }
+      }
+    },
     "脂肪": {
       "localizations": {
         "en": {
@@ -3469,7 +3610,22 @@
         }
       }
     },
-    "该 endpoint 未实现 /models 接口": {},
+    "该 endpoint 未实现 /models 接口": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This endpoint does not implement the /models API"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该 endpoint 未实现 /models 接口"
+          }
+        }
+      }
+    },
     "该 endpoint 未返回模型列表": {
       "localizations": {
         "en": {
@@ -3838,8 +3994,38 @@
         }
       }
     },
-    "返回内容无法解析": {},
-    "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）": {},
+    "返回内容无法解析": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The response could not be parsed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回内容无法解析"
+          }
+        }
+      }
+    },
+    "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received a web page instead of API data. The Base URL may be wrong (e.g. missing /v1)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的是网页而非 API 数据，Base URL 可能有误（例如缺少 /v1）"
+          }
+        }
+      }
+    },
     "还没有体重记录": {
       "localizations": {
         "en": {
@@ -4096,7 +4282,22 @@
         }
       }
     },
-    "鉴权失败：API Key 无效或无权限（401/403）": {},
+    "鉴权失败：API Key 无效或无权限（401/403）": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authentication failed: invalid API key or insufficient permission (401/403)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "鉴权失败：API Key 无效或无权限（401/403）"
+          }
+        }
+      }
+    },
     "长按可切换为文字记录": {
       "localizations": {
         "en": {
