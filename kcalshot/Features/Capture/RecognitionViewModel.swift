@@ -116,7 +116,12 @@ final class RecognitionViewModel {
             return collected
         }
 
-        if let aggregated = RecognitionAggregator.aggregate(results) {
+        if var aggregated = RecognitionAggregator.aggregate(results) {
+            // 多次采样的 token 要全部加总（聚合只挑一条做基准，会丢掉其余请求的用量）。
+            let summed = results.compactMap(\.tokenUsage).reduce(into: nil as TokenCount?) {
+                $0 = ($0 ?? .zero) + $1
+            }
+            aggregated.tokenUsage = summed
             state = .success(aggregated)
         } else {
             state = .failure(

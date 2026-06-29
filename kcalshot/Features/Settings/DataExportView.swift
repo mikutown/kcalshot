@@ -7,12 +7,14 @@ struct DataExportView: View {
     @Query private var meals: [MealEntry]
     @Query private var weights: [WeightEntry]
     @Query private var waters: [WaterEntry]
+    @Query private var tokens: [TokenUsage]
 
     @State private var includeThumbnails = false
     @State private var backupURL: URL?
     @State private var mealsCSV: URL?
     @State private var weightsCSV: URL?
     @State private var watersCSV: URL?
+    @State private var tokensCSV: URL?
     @State private var showImporter = false
     @State private var pendingData: Data?
     @State private var showRestoreChoice = false
@@ -29,6 +31,9 @@ struct DataExportView: View {
                 }
                 if let url = watersCSV {
                     ShareLink(item: url) { Label("饮水 CSV", systemImage: "drop") }
+                }
+                if let url = tokensCSV {
+                    ShareLink(item: url) { Label("Token CSV", systemImage: "number") }
                 }
             } header: {
                 Text("导出 CSV")
@@ -55,7 +60,7 @@ struct DataExportView: View {
         .navigationTitle("数据导出")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: includeThumbnails) { regenerateBackup() }
-        .task(id: "\(meals.count)-\(weights.count)-\(waters.count)") { regenerateCSV() }
+        .task(id: "\(meals.count)-\(weights.count)-\(waters.count)-\(tokens.count)") { regenerateCSV() }
         .fileImporter(isPresented: $showImporter, allowedContentTypes: [.json]) { result in
             handleImport(result)
         }
@@ -80,6 +85,7 @@ struct DataExportView: View {
         mealsCSV = try? CSVExporter.exportMeals(meals)
         weightsCSV = try? CSVExporter.exportWeights(weights)
         watersCSV = try? CSVExporter.exportWaters(waters)
+        tokensCSV = try? CSVExporter.exportTokens(tokens)
     }
 
     private func handleImport(_ result: Result<URL, Error>) {
@@ -99,7 +105,7 @@ struct DataExportView: View {
         pendingData = nil
         do {
             let s = try BackupCodec.restore(from: data, into: context, mode: mode)
-            resultMessage = String(localized: "已导入：三餐 \(s.meals)、体重 \(s.weights)、饮水 \(s.waters)、收藏 \(s.favorites)")
+            resultMessage = String(localized: "已导入：三餐 \(s.meals)、体重 \(s.weights)、饮水 \(s.waters)、收藏 \(s.favorites)、Token \(s.tokens)")
         } catch {
             resultMessage = String(localized: "备份文件无法解析")
         }

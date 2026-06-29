@@ -123,7 +123,13 @@ struct LLMClient {
             struct Message: Decodable { let content: String? }
             let message: Message
         }
+        struct Usage: Decodable {
+            let prompt_tokens: Int?
+            let completion_tokens: Int?
+            let total_tokens: Int?
+        }
         let choices: [Choice]
+        let usage: Usage?
     }
 
     /// 用视觉模型识别一张食物照片，解析为 RecognitionResult。
@@ -171,15 +177,19 @@ struct LLMClient {
         messages: () -> [[String: Any]]
     ) async throws -> RecognitionResult {
         var lastRaw = ""
+        // token 在每次请求时就消耗，跨重试累加；端点未返回用量则保持 nil。
+        var accumulated: TokenCount?
         for attempt in 0..<2 {
-            let raw = try await postChat(
+            let (raw, usage) = try await postChat(
                 modelId: modelId,
                 messages: messages(),
                 attempt: attempt,
                 onUploadProgress: onUploadProgress
             )
+            if let usage { accumulated = (accumulated ?? .zero) + usage }
             lastRaw = raw
-            if let result = RecognitionResult.parse(from: raw, modelUsed: modelDisplayName) {
+            if var result = RecognitionResult.parse(from: raw, modelUsed: modelDisplayName) {
+                result.tokenUsage = accumulated
                 return result
             }
         }
@@ -191,7 +201,7 @@ struct LLMClient {
         messages: [[String: Any]],
         attempt: Int,
         onUploadProgress: (@Sendable (Double) -> Void)? = nil
-    ) async throws -> String {
+    ) async throws -> (content: String, usage: TokenCount?) {
         let url = try makeURL(path: "/chat/completions")
         guard !apiKey.isEmpty else { throw LLMError.missingAPIKey }
 
@@ -238,7 +248,19 @@ struct LLMClient {
               !content.isEmpty else {
             throw LLMError.emptyResponse
         }
-        return content
+        return (content, Self.tokenCount(from: parsed.usage))
+    }
+
+    /// 把响应 usage 转为 TokenCount；缺字段时按可得部分推算，全缺返回 nil。
+    private static func tokenCount(from usage: ChatResponse.Usage?) -> TokenCount? {
+        guard let usage else { return nil }
+        let prompt = usage.prompt_tokens
+        let completion = usage.completion_tokens
+        let total = usage.total_tokens
+        guard prompt != nil || completion != nil || total != nil else { return nil }
+        let p = prompt ?? 0
+        let c = completion ?? 0
+        return TokenCount(prompt: p, completion: c, total: total ?? (p + c))
     }
 
     private static func looksLikeHTML(_ data: Data) -> Bool {

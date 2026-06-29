@@ -14,6 +14,8 @@ struct RecognitionResult: Equatable {
     var assumptions: String
     /// 识别所用模型显示名
     var modelUsed: String
+    /// 本次识别的 token 用量（含重试/多采样的累加）；端点未返回时为 nil。
+    var tokenUsage: TokenCount? = nil
 
     var totalCalories: Double { items.totalCalories }
     var totalProtein: Double { items.totalProtein }

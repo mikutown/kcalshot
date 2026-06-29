@@ -69,9 +69,24 @@ struct RecognitionResultCard: View {
             Text("识别模型：\(modelName) · 数值为 AI 估算")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
+            tokenLine
         }
         .padding()
         .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+    }
+
+    @ViewBuilder
+    private var tokenLine: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "number")
+            if let usage = result.tokenUsage {
+                Text("本次 Token：\(usage.total)（输入 \(usage.prompt) / 输出 \(usage.completion)）")
+            } else {
+                Text("本端点未返回 Token 用量")
+            }
+        }
+        .font(.caption2)
+        .foregroundStyle(.tertiary)
     }
 
     private var healthBadge: some View {

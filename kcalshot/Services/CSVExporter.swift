@@ -60,4 +60,19 @@ enum CSVExporter {
         }
         return try write(lines.joined(separator: "\n"), filename: "kcalshot-water.csv")
     }
+
+    static func exportTokens(_ entries: [TokenUsage]) throws -> URL {
+        var lines = [row(["date", "model", "prompt", "completion", "total", "kind"])]
+        for e in entries.sorted(by: { $0.date < $1.date }) {
+            lines.append(row([
+                iso.string(from: e.date),
+                e.modelDisplay,
+                String(e.promptTokens),
+                String(e.completionTokens),
+                String(e.totalTokens),
+                e.kindRaw,
+            ]))
+        }
+        return try write(lines.joined(separator: "\n"), filename: "kcalshot-tokens.csv")
+    }
 }

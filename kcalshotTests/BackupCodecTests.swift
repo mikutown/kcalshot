@@ -9,7 +9,7 @@ final class BackupCodecTests: XCTestCase {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(
             for: MealEntry.self, DailyGoal.self, APIModelConfig.self,
-            WeightEntry.self, WaterEntry.self, FavoriteFood.self,
+            WeightEntry.self, WaterEntry.self, FavoriteFood.self, TokenUsage.self,
             configurations: config
         )
         return ModelContext(container)
@@ -28,6 +28,8 @@ final class BackupCodecTests: XCTestCase {
         ctx.insert(FavoriteFood(name: "鸡胸", defaultGrams: 120, caloriesPer100g: 120,
                                 proteinPer100g: 23, fatPer100g: 2, carbsPer100g: 0,
                                 healthScore: 9, healthReason: ""))
+        ctx.insert(TokenUsage(modelDisplay: "qwen3-vl-plus", promptTokens: 900,
+                              completionTokens: 334, totalTokens: 1234, kind: .photo))
         let data = try BackupCodec.export(context: ctx, includeThumbnails: false)
 
         let restored = try makeContext()
@@ -36,11 +38,16 @@ final class BackupCodecTests: XCTestCase {
         XCTAssertEqual(summary.meals, 1)
         XCTAssertEqual(summary.waters, 1)
         XCTAssertEqual(summary.favorites, 1)
+        XCTAssertEqual(summary.tokens, 1)
 
         let meals = try restored.fetch(FetchDescriptor<MealEntry>())
         XCTAssertEqual(meals.first?.name, "测试餐")
         XCTAssertEqual(meals.first?.items.first?.caloriesPer100g, 130)
         XCTAssertEqual(meals.first?.calories, 195) // 130 * 150/100
+
+        let tokens = try restored.fetch(FetchDescriptor<TokenUsage>())
+        XCTAssertEqual(tokens.first?.totalTokens, 1234)
+        XCTAssertEqual(tokens.first?.kind, .photo)
     }
 
     @MainActor

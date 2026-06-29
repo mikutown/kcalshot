@@ -7,6 +7,7 @@ struct SettingsView: View {
     @Query private var goals: [DailyGoal]
     @Query(sort: \WeightEntry.date, order: .reverse) private var weights: [WeightEntry]
     @Query private var waters: [WaterEntry]
+    @Query private var tokenRecords: [TokenUsage]
 
     var body: some View {
         NavigationStack {
@@ -29,6 +30,11 @@ struct SettingsView: View {
                         Stepper(value: precisionSamples, in: 2...5) {
                             LabeledContent("采样次数", value: "\(settings.precisionSampleCount)")
                         }
+                    }
+                    NavigationLink {
+                        TokenUsageView()
+                    } label: {
+                        LabeledContent("Token 用量", value: tokenSummary)
                     }
                 } header: {
                     Text("识别")
@@ -108,6 +114,11 @@ struct SettingsView: View {
     private var waterSummary: String {
         let today = waters.onSameDay(as: .now).totalML
         return "\(Int(today.rounded())) mL"
+    }
+
+    private var tokenSummary: String {
+        let today = tokenRecords.onSameDay(as: .now).totalTokens
+        return today > 0 ? String(localized: "今日 \(today)") : String(localized: "暂无")
     }
 
     private var waterTarget: Binding<Double> {

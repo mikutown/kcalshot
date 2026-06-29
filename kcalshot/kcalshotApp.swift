@@ -10,7 +10,7 @@ struct KcalShotApp: App {
         do {
             modelContainer = try ModelContainer(
                 for: MealEntry.self, DailyGoal.self, APIModelConfig.self, WeightEntry.self,
-                WaterEntry.self, FavoriteFood.self
+                WaterEntry.self, FavoriteFood.self, TokenUsage.self
             )
         } catch {
             fatalError("无法创建 SwiftData ModelContainer: \(error)")

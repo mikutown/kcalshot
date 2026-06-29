@@ -14,6 +14,7 @@ struct RestoreSummary {
     var weights = 0
     var waters = 0
     var favorites = 0
+    var tokens = 0
     var goalRestored = false
 }
 
@@ -27,6 +28,7 @@ enum BackupCodec {
         var weights: [WeightDTO]
         var waters: [WaterDTO]
         var favorites: [FavoriteDTO]
+        var tokens: [TokenDTO]?
     }
 
     struct MealDTO: Codable {
@@ -81,6 +83,16 @@ enum BackupCodec {
         var createdAt: Date
     }
 
+    struct TokenDTO: Codable {
+        var id: UUID
+        var date: Date
+        var modelDisplay: String
+        var promptTokens: Int
+        var completionTokens: Int
+        var totalTokens: Int
+        var kind: String
+    }
+
     // MARK: - 导出
 
     static func export(context: ModelContext, includeThumbnails: Bool) throws -> Data {
@@ -89,6 +101,7 @@ enum BackupCodec {
         let weights = (try? context.fetch(FetchDescriptor<WeightEntry>())) ?? []
         let waters = (try? context.fetch(FetchDescriptor<WaterEntry>())) ?? []
         let favorites = (try? context.fetch(FetchDescriptor<FavoriteFood>())) ?? []
+        let tokens = (try? context.fetch(FetchDescriptor<TokenUsage>())) ?? []
 
         let backup = Backup(
             schemaVersion: 1,
@@ -116,6 +129,13 @@ enum BackupCodec {
                     caloriesPer100g: $0.caloriesPer100g, proteinPer100g: $0.proteinPer100g,
                     fatPer100g: $0.fatPer100g, carbsPer100g: $0.carbsPer100g,
                     healthScore: $0.healthScore, healthReason: $0.healthReason, createdAt: $0.createdAt
+                )
+            },
+            tokens: tokens.map {
+                TokenDTO(
+                    id: $0.id, date: $0.date, modelDisplay: $0.modelDisplay,
+                    promptTokens: $0.promptTokens, completionTokens: $0.completionTokens,
+                    totalTokens: $0.totalTokens, kind: $0.kindRaw
                 )
             }
         )
@@ -145,6 +165,7 @@ enum BackupCodec {
             try deleteAll(WeightEntry.self, in: context)
             try deleteAll(WaterEntry.self, in: context)
             try deleteAll(FavoriteFood.self, in: context)
+            try deleteAll(TokenUsage.self, in: context)
             try deleteAll(DailyGoal.self, in: context)
         }
 
@@ -195,6 +216,19 @@ enum BackupCodec {
             f.id = dto.id
             context.insert(f)
             summary.favorites += 1
+        }
+
+        let existingTokens = mode == .merge ? Set(((try? context.fetch(FetchDescriptor<TokenUsage>())) ?? []).map(\.id)) : []
+        for dto in (backup.tokens ?? []) where !existingTokens.contains(dto.id) {
+            let t = TokenUsage(
+                date: dto.date, modelDisplay: dto.modelDisplay,
+                promptTokens: dto.promptTokens, completionTokens: dto.completionTokens,
+                totalTokens: dto.totalTokens,
+                kind: RecognitionKind(rawValue: dto.kind) ?? .photo
+            )
+            t.id = dto.id
+            context.insert(t)
+            summary.tokens += 1
         }
 
         // 目标：合并时仅当本地无目标才导入；覆盖时已清空，直接导入第一条。

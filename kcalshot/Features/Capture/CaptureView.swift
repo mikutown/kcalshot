@@ -284,6 +284,19 @@ struct CaptureView: View {
             guard !text.isEmpty else { return }
             await vm.recognizeText(description: text, model: model, settings: settings)
         }
+        recordTokenUsage(model: model)
+    }
+
+    /// 识别完成后记录本次 token 用量（无论是否保存这一餐）。端点未返回用量则不落库。
+    private func recordTokenUsage(model: APIModelConfig) {
+        guard let usage = vm.successResult?.tokenUsage else { return }
+        context.insert(TokenUsage(
+            modelDisplay: model.displayName,
+            promptTokens: usage.prompt,
+            completionTokens: usage.completion,
+            totalTokens: usage.total,
+            kind: mode == .photo ? .photo : .text
+        ))
     }
 
     /// 固定在底部的保存操作栏：位置与颜色固定，不随 needsReview 变化。
