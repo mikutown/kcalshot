@@ -976,6 +976,22 @@
     "保存原图到相册" : {
 
     },
+    "仅保存新拍摄的照片；从相册选择的图片不会重复保存。" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only newly captured photos are saved; images selected from the photo library are not saved again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅保存新拍摄的照片；从相册选择的图片不会重复保存。"
+          }
+        }
+      }
+    },
     "停止" : {
       "localizations" : {
         "en" : {
@@ -4911,6 +4927,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "高度活动"
+          }
+        }
+      }
+    },
+    "照片" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photos"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片"
           }
         }
       }

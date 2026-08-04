@@ -37,11 +37,17 @@ struct SettingsView: View {
                     } label: {
                         LabeledContent("Token 用量", value: tokenSummary)
                     }
-                    Toggle("保存原图到相册", isOn: saveOriginalPhoto)
                 } header: {
                     Text("识别")
                 } footer: {
                     Text("开启后，每次识别会对同一张照片多次采样并取中位数，准确度更稳但 API 成本与耗时按采样次数成倍增加（识别失败会自动重试，实际请求可能更多）。")
+                }
+                Section {
+                    Toggle("保存原图到相册", isOn: saveOriginalPhoto)
+                } header: {
+                    Text("照片")
+                } footer: {
+                    Text("仅保存新拍摄的照片；从相册选择的图片不会重复保存。")
                 }
                 Section("每日目标") {
                     NavigationLink {
@@ -97,7 +103,7 @@ struct SettingsView: View {
                     } label: {
                         Text("数据与隐私")
                     }
-                    LabeledContent("版本", value: "0.1.0 (M5)")
+                    LabeledContent("版本", value: AppVersion.displayString(from: .main))
                 }
             }
             .navigationTitle("设置")
