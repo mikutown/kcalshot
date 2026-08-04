@@ -16,7 +16,7 @@ struct TodayView: View {
     @State private var showSourceDialog = false
     @State private var showWaterLog = false
     @State private var showQuickAdd = false
-    @State private var pickedImage: UIImage?
+    @State private var selectedPhoto: PhotoSelection?
     @State private var exercise: Double = 0
 
     private var todayEntries: [MealEntry] { allEntries.onSameDay(as: .now) }
@@ -36,8 +36,8 @@ struct TodayView: View {
     }
 
     /// 拿到照片后进入识别页（图片已落在矩形预览区）。
-    private func presentPhotoCapture(_ image: UIImage) {
-        pickedImage = image
+    private func presentPhotoCapture(_ photo: PhotoSelection) {
+        selectedPhoto = photo
         captureMode = .photo
         showCapture = true
     }
@@ -75,14 +75,14 @@ struct TodayView: View {
                 }
             }
         }
-        .photoSourcePicker(isPresented: $showSourceDialog) { image in
-            presentPhotoCapture(image)
+        .photoSourcePicker(isPresented: $showSourceDialog) { photo in
+            presentPhotoCapture(photo)
         }
         .onChange(of: showCapture) { _, isShown in
-            if !isShown { pickedImage = nil }
+            if !isShown { selectedPhoto = nil }
         }
         .sheet(isPresented: $showCapture) {
-            CaptureView(mode: captureMode, initialImage: pickedImage)
+            CaptureView(mode: captureMode, selectedPhoto: selectedPhoto)
         }
         .sheet(isPresented: $showQuickAdd) {
             QuickAddView()

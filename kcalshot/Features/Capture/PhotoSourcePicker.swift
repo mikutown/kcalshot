@@ -6,7 +6,7 @@ import PhotosUI
 /// 拿到图片后通过 onImagePicked 回调交还给调用方。
 private struct PhotoSourcePicker: ViewModifier {
     @Binding var isPresented: Bool
-    let onImagePicked: (UIImage) -> Void
+    let onImagePicked: (PhotoSelection) -> Void
 
     @State private var showCamera = false
     @State private var showPhotoPicker = false
@@ -29,7 +29,7 @@ private struct PhotoSourcePicker: ViewModifier {
                     pickedImage = nil
                     Task { @MainActor in
                         try? await Task.sleep(for: .milliseconds(250))
-                        onImagePicked(image)
+                        onImagePicked(PhotoSelection(image: image, source: .camera))
                     }
                 }
             }
@@ -57,7 +57,7 @@ private struct PhotoSourcePicker: ViewModifier {
               let data = try? await item.loadTransferable(type: Data.self),
               let image = UIImage(data: data) else { return }
         photoItem = nil
-        onImagePicked(image)
+        onImagePicked(PhotoSelection(image: image, source: .library))
     }
 
     private var sourceSheet: some View {
@@ -97,7 +97,7 @@ extension View {
     /// 弹出全宽底部来源选择，选/拍到图片后通过 onImagePicked 回调。
     func photoSourcePicker(
         isPresented: Binding<Bool>,
-        onImagePicked: @escaping (UIImage) -> Void
+        onImagePicked: @escaping (PhotoSelection) -> Void
     ) -> some View {
         modifier(PhotoSourcePicker(isPresented: isPresented, onImagePicked: onImagePicked))
     }

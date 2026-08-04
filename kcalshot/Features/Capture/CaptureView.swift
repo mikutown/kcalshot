@@ -9,10 +9,14 @@ struct CaptureView: View {
     /// 新记录归属的日期（从日历某天进入时为那一天，否则为今天）。
     var targetDate: Date = .now
 
-    init(mode: InputMode = .photo, initialImage: UIImage? = nil, targetDate: Date = .now) {
+    init(
+        mode: InputMode = .photo,
+        selectedPhoto: PhotoSelection? = nil,
+        targetDate: Date = .now
+    ) {
         self.mode = mode
         self.targetDate = targetDate
-        _image = State(initialValue: initialImage)
+        _selectedPhoto = State(initialValue: selectedPhoto)
     }
 
     @Environment(AppSettings.self) private var settings
@@ -20,7 +24,7 @@ struct CaptureView: View {
     @Environment(\.dismiss) private var dismiss
     @Query(sort: \APIModelConfig.displayName) private var models: [APIModelConfig]
 
-    @State private var image: UIImage?
+    @State private var selectedPhoto: PhotoSelection?
     @State private var textDescription = ""
     @State private var correction = ""
     @State private var showCorrectionSheet = false
@@ -29,6 +33,8 @@ struct CaptureView: View {
     @State private var vm = RecognitionViewModel()
     @State private var draft: SaveDraft?
     @FocusState private var textFieldFocused: Bool
+
+    private var image: UIImage? { selectedPhoto?.image }
 
     /// 待保存草稿（Identifiable，配合 .sheet(item:) 避免空白页竞态）。
     private struct SaveDraft: Identifiable {
@@ -102,7 +108,7 @@ struct CaptureView: View {
                 }
             }
             .photoSourcePicker(isPresented: $showSourceDialog) { picked in
-                image = picked
+                selectedPhoto = picked
                 correction = ""
                 vm.state = .idle
             }
@@ -161,9 +167,12 @@ struct CaptureView: View {
 
     /// 若设置开启，将原图保存到系统相册。
     private func saveOriginalPhotoToAlbum() {
-        guard settings.saveOriginalPhoto, let image else { return }
+        guard let selectedPhoto,
+              selectedPhoto.source.shouldSaveOriginal(isEnabled: settings.saveOriginalPhoto) else {
+            return
+        }
         try? PHPhotoLibrary.shared().performChanges {
-            PHAssetChangeRequest.creationRequestForAsset(from: image)
+            PHAssetChangeRequest.creationRequestForAsset(from: selectedPhoto.image)
         }
     }
 

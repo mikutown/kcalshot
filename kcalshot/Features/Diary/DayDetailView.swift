@@ -11,7 +11,7 @@ struct DayDetailView: View {
     @State private var showCapture = false
     @State private var captureMode: CaptureView.InputMode = .photo
     @State private var showSourceDialog = false
-    @State private var pickedImage: UIImage?
+    @State private var selectedPhoto: PhotoSelection?
 
     private var dayEntries: [MealEntry] { allEntries.onSameDay(as: date) }
 
@@ -45,16 +45,16 @@ struct DayDetailView: View {
                 }
             }
         }
-        .photoSourcePicker(isPresented: $showSourceDialog) { image in
-            pickedImage = image
+        .photoSourcePicker(isPresented: $showSourceDialog) { photo in
+            selectedPhoto = photo
             captureMode = .photo
             showCapture = true
         }
         .onChange(of: showCapture) { _, isShown in
-            if !isShown { pickedImage = nil }
+            if !isShown { selectedPhoto = nil }
         }
         .sheet(isPresented: $showCapture) {
-            CaptureView(mode: captureMode, initialImage: pickedImage, targetDate: captureTargetDate)
+            CaptureView(mode: captureMode, selectedPhoto: selectedPhoto, targetDate: captureTargetDate)
         }
     }
 
