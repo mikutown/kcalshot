@@ -31,3 +31,6 @@ secrets.plist
 
 # 本地测试用的私人食物照片，不入库
 pic/
+
+# AtomCode local-scope configs (machine-specific)
+.atomcode/local/
