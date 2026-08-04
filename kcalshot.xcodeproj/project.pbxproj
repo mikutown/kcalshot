@@ -324,6 +324,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于将每日摄入热量写入 Apple 健康。";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "用于通过口述更正识别结果。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于从相册选择食物照片进行识别。照片仅发送至用户自行配置的 API。";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "用于将识别后的食物照片保存到相册。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "用于将口述的更正转写为文字。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -361,6 +362,7 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "用于将每日摄入热量写入 Apple 健康。";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "用于通过口述更正识别结果。";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "用于从相册选择食物照片进行识别。照片仅发送至用户自行配置的 API。";
+				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "用于将识别后的食物照片保存到相册。";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "用于将口述的更正转写为文字。";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

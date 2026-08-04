@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import PhotosUI
+import Photos
 
 struct CaptureView: View {
     enum InputMode { case photo, text }
@@ -148,12 +149,22 @@ struct CaptureView: View {
     /// 份量无误：直接建记录并关闭，不进确认页。
     private func directSave(_ result: RecognitionResult) {
         context.insert(buildEntry(from: result))
+        saveOriginalPhotoToAlbum()
         dismiss()
     }
 
     /// 份量需核对：进确认份量页。
     private func confirmSave(_ result: RecognitionResult) {
+        saveOriginalPhotoToAlbum()
         draft = SaveDraft(entry: buildEntry(from: result), needsReview: result.needsReview)
+    }
+
+    /// 若设置开启，将原图保存到系统相册。
+    private func saveOriginalPhotoToAlbum() {
+        guard settings.saveOriginalPhoto, let image else { return }
+        try? PHPhotoLibrary.shared().performChanges {
+            PHAssetChangeRequest.creationRequestForAsset(from: image)
+        }
     }
 
     @ViewBuilder

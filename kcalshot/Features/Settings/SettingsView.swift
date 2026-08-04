@@ -37,6 +37,7 @@ struct SettingsView: View {
                     } label: {
                         LabeledContent("Token 用量", value: tokenSummary)
                     }
+                    Toggle("保存原图到相册", isOn: saveOriginalPhoto)
                 } header: {
                     Text("识别")
                 } footer: {
@@ -167,6 +168,13 @@ struct SettingsView: View {
         Binding(
             get: { settings.precisionSampleCount },
             set: { settings.precisionSampleCount = $0 }
+        )
+    }
+
+    private var saveOriginalPhoto: Binding<Bool> {
+        Binding(
+            get: { settings.saveOriginalPhoto },
+            set: { settings.saveOriginalPhoto = $0 }
         )
     }
 

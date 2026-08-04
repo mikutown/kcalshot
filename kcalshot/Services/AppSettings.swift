@@ -10,6 +10,7 @@ final class AppSettings {
         static let waterTargetML = "water_target_ml"
         static let highPrecisionMode = "high_precision_mode"
         static let precisionSampleCount = "precision_sample_count"
+        static let saveOriginalPhoto = "save_original_photo"
         static let appLanguage = "app_language"
     }
 
@@ -49,6 +50,11 @@ final class AppSettings {
         didSet { UserDefaults.standard.set(precisionSampleCount, forKey: Keys.precisionSampleCount) }
     }
 
+    /// 保存原图到系统相册。
+    var saveOriginalPhoto: Bool {
+        didSet { UserDefaults.standard.set(saveOriginalPhoto, forKey: Keys.saveOriginalPhoto) }
+    }
+
     /// 全局 API key，读写直通 Keychain。
     var globalAPIKey: String {
         get { KeychainStore.get(account: KeychainStore.globalKeyAccount) ?? "" }
@@ -61,6 +67,7 @@ final class AppSettings {
         let storedTarget = UserDefaults.standard.double(forKey: Keys.waterTargetML)
         self.waterTargetML = storedTarget > 0 ? storedTarget : 2000
         self.highPrecisionMode = UserDefaults.standard.bool(forKey: Keys.highPrecisionMode)
+        self.saveOriginalPhoto = UserDefaults.standard.bool(forKey: Keys.saveOriginalPhoto)
         // 聚合取中位数，奇数采样才能干净剔除离群值，故只允许 3 或 5；旧的偶数/越界值归一。
         let storedSamples = UserDefaults.standard.integer(forKey: Keys.precisionSampleCount)
         self.precisionSampleCount = storedSamples >= 4 ? 5 : 3
