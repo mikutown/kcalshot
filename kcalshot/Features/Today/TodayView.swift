@@ -234,6 +234,8 @@ struct TodayView: View {
 
     private func delete(_ entries: [MealEntry], _ offsets: IndexSet) {
         for index in offsets { context.delete(entries[index]) }
+        // 立即落库，促使 @Query 重新发布，能量环/宏量随即刷新。
+        try? context.save()
     }
 }
 

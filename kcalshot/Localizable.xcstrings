@@ -793,6 +793,7 @@
       }
     },
     "从手机相册选择" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2167,6 +2168,7 @@
       }
     },
     "拍摄" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3230,6 +3232,7 @@
       }
     },
     "热量" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3473,6 +3476,7 @@
       }
     },
     "碳水" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3553,6 +3557,7 @@
       }
     },
     "维持热量 TDEE" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3567,6 +3572,9 @@
           }
         }
       }
+    },
+    "维持热量 TDEE %lld kcal" : {
+
     },
     "编辑模型" : {
       "localizations" : {
@@ -3633,6 +3641,7 @@
       }
     },
     "脂肪" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -3729,6 +3738,7 @@
       }
     },
     "蛋白质" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -4769,6 +4779,9 @@
           }
         }
       }
+    },
+    "选择照片来源" : {
+
     },
     "采样次数" : {
       "localizations" : {

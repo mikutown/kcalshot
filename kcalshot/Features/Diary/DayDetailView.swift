@@ -162,6 +162,8 @@ struct DayDetailView: View {
 
     private func delete(_ entries: [MealEntry], _ offsets: IndexSet) {
         for index in offsets { context.delete(entries[index]) }
+        // 立即落库，促使 @Query 重新发布，当日合计/餐次小计随即刷新（否则删除仅由 List 动画移除行、聚合数字不更新）。
+        try? context.save()
     }
 
     private static let titleFormatter: DateFormatter = {
