@@ -8,14 +8,18 @@ struct CaptureView: View {
     var mode: InputMode = .photo
     /// 新记录归属的日期（从日历某天进入时为那一天，否则为今天）。
     var targetDate: Date = .now
+    /// 指定餐次；为 nil 则按时段推断。
+    var targetMeal: MealType?
 
     init(
         mode: InputMode = .photo,
         selectedPhoto: PhotoSelection? = nil,
-        targetDate: Date = .now
+        targetDate: Date = .now,
+        targetMeal: MealType? = nil
     ) {
         self.mode = mode
         self.targetDate = targetDate
+        self.targetMeal = targetMeal
         _selectedPhoto = State(initialValue: selectedPhoto)
     }
 
@@ -60,11 +64,6 @@ struct CaptureView: View {
                             imageArea
                                 .id("top")
                                 .animation(.easeInOut(duration: 0.25), value: hasResult)
-                            if image != nil, !hasResult {
-                                Text("点按图片可更换照片")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
                         } else {
                             textInputArea
                         }
@@ -73,6 +72,9 @@ struct CaptureView: View {
                             noModelHint
                         } else {
                             modelPicker
+                            if mode == .photo, !hasResult {
+                                noteField
+                            }
                             if isReRecognize {
                                 recognizeButton
                             }
@@ -81,6 +83,7 @@ struct CaptureView: View {
                     }
                     .padding()
                 }
+                .background(Color.appBackground)
                 .onChange(of: successResult) { _, result in
                     if result != nil {
                         // 滚到顶部：缩小后的图片在上、概览紧随其后，同屏可见。
@@ -141,7 +144,7 @@ struct CaptureView: View {
     private func buildEntry(from result: RecognitionResult) -> MealEntry {
         MealEntry(
             date: targetDate,
-            mealType: .suggested(),
+            mealType: targetMeal ?? .suggested(),
             name: result.items.map(\.name).joined(separator: "、"),
             items: result.items,
             healthScore: result.healthScore,
@@ -182,40 +185,84 @@ struct CaptureView: View {
             if let image {
                 Image(uiImage: image)
                     .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: hasResult ? 120 : 300)
+                    .scaledToFill()
                     .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .frame(height: hasResult ? 120 : 240)
+                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .overlay(alignment: .bottomTrailing) {
+                        if !hasResult { changePhotoPill.padding(12) }
+                    }
             } else {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.secondarySystemBackground))
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.cardSurface)
                     .frame(height: 220)
                     .overlay {
-                        VStack(spacing: 8) {
-                            Image(systemName: "photo.badge.plus").font(.largeTitle)
-                            Text("选择或拍摄一张食物照片").foregroundStyle(.secondary)
+                        VStack(spacing: 10) {
+                            Image(systemName: "camera.viewfinder")
+                                .font(.largeTitle)
+                                .foregroundStyle(Color.brandGreen)
+                            Text("拍摄或从相册选择一张食物照片")
+                                .font(.subheadline)
+                                .foregroundStyle(Color.inkSecondary)
                         }
                     }
+                    .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 6)
             }
         }
-        .contentShape(RoundedRectangle(cornerRadius: 16))
+        .contentShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .onTapGesture { showSourceDialog = true }
+    }
+
+    private var changePhotoPill: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "arrow.triangle.2.circlepath")
+            Text("更换照片")
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color.black.opacity(0.55), in: Capsule())
+    }
+
+    /// 补充说明（可选）：作为附注一起传给识别，帮助模型更准。
+    private var noteField: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 7) {
+                Image(systemName: "text.bubble")
+                    .font(.caption)
+                    .foregroundStyle(Color.brandGreenDeep)
+                Text("补充说明")
+                    .font(.caption.weight(.bold))
+                    .foregroundStyle(Color.inkSecondary)
+                Text("可选")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.inkTertiary)
+            }
+            TextField("例如：米饭约二两、煎蛋少油、饮料无糖", text: $correction, axis: .vertical)
+                .font(.subheadline)
+                .lineLimit(2...4)
+        }
+        .padding(14)
+        .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.hairline, lineWidth: 1))
     }
 
     private var textInputArea: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("请描述这一餐的食物与大致分量")
-                .font(.subheadline).foregroundStyle(.secondary)
+                .font(.subheadline).foregroundStyle(Color.inkSecondary)
             TextEditor(text: $textDescription)
                 .focused($textFieldFocused)
                 .frame(minHeight: 130)
                 .scrollContentBackground(.hidden)
                 .padding(8)
-                .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.hairline, lineWidth: 1))
                 .overlay(alignment: .topLeading) {
                     if textDescription.isEmpty {
                         Text("例如：早餐一根油条、一碗豆浆、一个茶叶蛋")
-                            .foregroundStyle(.tertiary)
+                            .foregroundStyle(Color.inkTertiary)
                             .padding(.horizontal, 13)
                             .padding(.vertical, 16)
                             .allowsHitTesting(false)
@@ -225,31 +272,45 @@ struct CaptureView: View {
     }
 
     private var modelPicker: some View {
-        HStack {
-            Text("识别模型").foregroundStyle(.secondary)
-            Spacer()
-            Menu {
-                ForEach(availableModels) { model in
-                    Button {
-                        selectedModel = model
-                    } label: {
-                        if model.persistentModelID == selectedModel?.persistentModelID {
-                            Label(model.displayName, systemImage: "checkmark")
-                        } else {
-                            Text(model.displayName)
-                        }
+        Menu {
+            ForEach(availableModels) { model in
+                Button {
+                    selectedModel = model
+                } label: {
+                    if model.persistentModelID == selectedModel?.persistentModelID {
+                        Label(model.displayName, systemImage: "checkmark")
+                    } else {
+                        Text(model.displayName)
                     }
                 }
-            } label: {
-                HStack(spacing: 4) {
-                    Text(selectedModel?.displayName ?? "选择模型")
-                    Image(systemName: "chevron.up.chevron.down").font(.caption)
-                }
             }
+        } label: {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.brandGreen.opacity(0.12))
+                    .frame(width: 38, height: 38)
+                    .overlay {
+                        Image(systemName: "sparkles")
+                            .foregroundStyle(Color.brandGreenDeep)
+                    }
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("识别模型")
+                        .font(.caption)
+                        .foregroundStyle(Color.inkTertiary)
+                    Text(selectedModel?.displayName ?? "选择模型")
+                        .font(.subheadline.weight(.bold))
+                        .foregroundStyle(Color.inkPrimary)
+                }
+                Spacer()
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption)
+                    .foregroundStyle(Color.inkTertiary)
+            }
+            .padding(14)
+            .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.hairline, lineWidth: 1))
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        .buttonStyle(.plain)
     }
 
     /// 出结果后放在滚动区的次要操作：换模型重新识别。
@@ -257,14 +318,18 @@ struct CaptureView: View {
         Button {
             Task { await runRecognition() }
         } label: {
-            HStack {
+            HStack(spacing: 8) {
                 if vm.isRecognizing { ProgressView().controlSize(.small) }
-                Text("重新识别")
-                    .frame(maxWidth: .infinity)
+                Text("重新识别").font(.subheadline.weight(.bold))
             }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 13)
+            .background(Color.brandGreen.opacity(0.12), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .foregroundStyle(Color.brandGreenDeep)
         }
-        .buttonStyle(.bordered)
+        .buttonStyle(.plain)
         .disabled(recognizeDisabled)
+        .opacity(recognizeDisabled ? 0.5 : 1)
     }
 
     /// 无结果时固定在底部的主操作：识别。
@@ -272,13 +337,27 @@ struct CaptureView: View {
         Button {
             Task { await runRecognition() }
         } label: {
-            HStack {
-                if vm.isRecognizing { ProgressView().controlSize(.small) }
-                Text("识别").frame(maxWidth: .infinity)
+            HStack(spacing: 9) {
+                if vm.isRecognizing {
+                    ProgressView().controlSize(.small).tint(.white)
+                } else {
+                    Image(systemName: "sparkles")
+                }
+                Text(vm.isRecognizing ? "识别中…" : (mode == .photo ? "识别这一餐" : "识别"))
+                    .font(.headline)
             }
+            .frame(maxWidth: .infinity)
+            .padding(16)
+            .background(
+                LinearGradient(colors: [.brandGreen, .brandGreenDeep], startPoint: .topLeading, endPoint: .bottomTrailing),
+                in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+            )
+            .foregroundStyle(.white)
         }
-        .buttonStyle(.borderedProminent)
+        .buttonStyle(.plain)
         .disabled(recognizeDisabled)
+        .opacity(recognizeDisabled ? 0.5 : 1)
+        .shadow(color: Color.brandGreen.opacity(recognizeDisabled ? 0 : 0.3), radius: 10, x: 0, y: 5)
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(.bar)
@@ -324,34 +403,50 @@ struct CaptureView: View {
 
     /// 固定在底部的保存操作栏：位置与颜色固定，不随 needsReview 变化。
     private func saveBar(for result: RecognitionResult) -> some View {
-        VStack(spacing: 8) {
-            Button {
-                showCorrectionSheet = true
-            } label: {
-                Label("补充说明并重新识别", systemImage: "text.bubble")
-                    .frame(maxWidth: .infinity)
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                softSaveButton("补充说明重识别", systemImage: "text.bubble") {
+                    showCorrectionSheet = true
+                }
+                softSaveButton("调整份量后保存", systemImage: "slider.horizontal.3") {
+                    confirmSave(result)
+                }
             }
-            .buttonStyle(.bordered)
-
-            Button {
-                confirmSave(result)
-            } label: {
-                Label("调整份量后保存", systemImage: "slider.horizontal.3")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-
             Button {
                 directSave(result)
             } label: {
-                Label("直接保存", systemImage: "tray.and.arrow.down")
-                    .frame(maxWidth: .infinity)
+                HStack(spacing: 8) {
+                    Image(systemName: "tray.and.arrow.down")
+                    Text("直接保存").font(.headline)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(16)
+                .background(
+                    LinearGradient(colors: [.brandGreen, .brandGreenDeep], startPoint: .topLeading, endPoint: .bottomTrailing),
+                    in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+                )
+                .foregroundStyle(.white)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.plain)
+            .shadow(color: Color.brandGreen.opacity(0.3), radius: 10, x: 0, y: 5)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(.bar)
+    }
+
+    private func softSaveButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 5) {
+                Image(systemName: systemImage)
+                Text(title).font(.caption.weight(.bold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+            .foregroundStyle(Color.inkPrimary)
+        }
+        .buttonStyle(.plain)
     }
 
     private var isReRecognize: Bool {
@@ -397,15 +492,21 @@ struct CaptureView: View {
 
     private var noModelHint: some View {
         VStack(spacing: 8) {
+            Image(systemName: "sparkles.slash")
+                .font(.title2)
+                .foregroundStyle(Color.inkTertiary)
             Text("还没有可用于识别的视觉模型")
-                .font(.subheadline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.inkPrimary)
             Text("请前往「设置 → 模型管理」添加支持视觉的模型")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color.inkSecondary)
+                .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+        .padding(20)
+        .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.hairline, lineWidth: 1))
     }
 }
 

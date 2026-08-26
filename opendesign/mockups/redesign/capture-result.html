@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KcalShot · 识别结果</title>
+<link rel="stylesheet" href="../../design-systems/kcalshot/colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font); color: var(--ink);
+    display: flex; justify-content: center; padding: 40px 0 80px;
+    background: #E7E9E4; -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+  .phone {
+    width: 393px; height: 852px; position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background:
+      radial-gradient(1000px 500px at 50% -200px, #EAF6EE 0%, transparent 60%),
+      var(--bg);
+    overflow: hidden;
+  }
+  .backdrop { position: absolute; inset: 0; background: rgba(20,24,26,0.34); backdrop-filter: blur(2px); }
+
+  .sheet {
+    position: relative; z-index: 2; background: var(--card);
+    border-radius: 30px 30px 0 0; box-shadow: 0 -12px 40px rgba(20,24,26,0.18);
+    display: flex; flex-direction: column; height: 800px; overflow: hidden;
+  }
+  .grabber { width: 40px; height: 5px; border-radius: 999px; background: var(--line); margin: 10px auto 6px; flex: none; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; padding: 0 20px 10px; flex: none; }
+  .sheet-head .close { border: none; background: transparent; cursor: pointer; font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--ink-2); }
+  .sheet-head .title { font-size: 17px; font-weight: 800; }
+  .sheet-head .spacer { width: 34px; }
+
+  .scroll { flex: 1; overflow-y: auto; padding: 4px 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+
+  /* recognized thumb + chip */
+  .recog { display: flex; align-items: center; gap: 12px; }
+  .recog .thumb {
+    width: 56px; height: 56px; border-radius: 14px; flex: none;
+    background: repeating-linear-gradient(45deg, #F0F1EE 0 8px, #F7F8F5 8px 16px);
+    display: grid; place-items: center; font-family: ui-monospace, monospace; font-size: 8px; color: var(--ink-3);
+  }
+  .recog .rchip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--green-deep); }
+  .recog .rchip svg { width: 16px; height: 16px; }
+  .recog .rsub { font-size: 12px; color: var(--ink-3); font-weight: 500; margin-top: 2px; }
+
+  /* review banner */
+  .banner {
+    display: flex; align-items: center; gap: 9px;
+    background: rgba(255,176,32,0.14); color: #B47600;
+    font-size: 13px; font-weight: 700; padding: 12px 14px; border-radius: 14px;
+  }
+  .banner svg { width: 18px; height: 18px; flex: none; }
+
+  /* summary card */
+  .summary { background: var(--card-soft); border: 1px solid var(--line); border-radius: var(--r-card); padding: 18px; }
+  .sum-top { display: flex; align-items: flex-end; justify-content: space-between; }
+  .sum-top .kcal { display: flex; align-items: baseline; gap: 6px; }
+  .sum-top .kcal b { font-size: 42px; font-weight: 800; line-height: 0.9; }
+  .sum-top .kcal span { font-size: 15px; font-weight: 700; color: var(--ink-3); }
+  .hbadge { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 7px 14px; border-radius: 999px; }
+  .hbadge b { font-size: 15px; font-weight: 800; }
+  .hbadge span { font-size: 11px; font-weight: 700; }
+  .h-good { background: rgba(16,185,129,0.15); color: #0E9F8E; }
+
+  .macros { display: flex; gap: 10px; margin-top: 16px; }
+  .macro { flex: 1; border-radius: var(--r-tile); padding: 11px 8px 12px; text-align: center; }
+  .macro b { font-size: 18px; font-weight: 800; display: block; }
+  .macro span { font-size: 12px; font-weight: 600; margin-top: 1px; display: block; }
+  .m-protein { background: rgba(34,197,94,0.10); } .m-protein b { color: var(--green-deep); } .m-protein span { color: var(--green-deep); }
+  .m-fat { background: rgba(255,107,74,0.10); }   .m-fat b { color: #D64A2A; }              .m-fat span { color: #D64A2A; }
+  .m-carbs { background: rgba(255,176,32,0.12); } .m-carbs b { color: #B47600; }            .m-carbs span { color: #B47600; }
+
+  /* items */
+  .items-h { font-size: 14px; font-weight: 800; color: var(--ink-2); padding: 4px 4px 0; }
+  .items { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-card); padding: 4px 14px; }
+  .item { padding: 13px 0; }
+  .item + .item { border-top: 1px solid var(--line); }
+  .item-row { display: flex; align-items: center; gap: 10px; }
+  .score { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; font-size: 12px; font-weight: 800; flex: none; }
+  .sc-green { background: rgba(34,197,94,0.16); color: var(--green-deep); }
+  .sc-mint  { background: rgba(16,185,129,0.16); color: #0E9F8E; }
+  .sc-amber { background: rgba(255,176,32,0.18); color: #B47600; }
+  .item .iname { flex: 1; font-size: 15px; font-weight: 600; }
+  .item .igram { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+  .item .ik { font-size: 15px; font-weight: 700; }
+  .item .ik small { font-size: 11px; color: var(--ink-3); font-weight: 600; }
+  .alts { display: flex; align-items: center; gap: 6px; margin: 9px 0 0 34px; flex-wrap: wrap; }
+  .alts .lbl { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--ink-3); font-weight: 600; }
+  .alts .lbl svg { width: 13px; height: 13px; color: var(--orange); }
+  .chip { font-size: 12px; font-weight: 600; padding: 4px 11px; border-radius: 999px; background: rgba(34,197,94,0.12); color: var(--green-deep); border: none; cursor: pointer; }
+
+  /* info lines */
+  .info { display: flex; flex-direction: column; gap: 8px; padding: 0 4px; }
+  .iline { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--ink-2); font-weight: 500; line-height: 1.45; }
+  .iline svg { width: 16px; height: 16px; flex: none; margin-top: 1px; color: var(--ink-3); }
+  .meta-line { font-size: 11px; color: var(--ink-3); padding: 0 4px; }
+
+  /* save bar */
+  .savebar { flex: none; padding: 14px 20px calc(env(safe-area-inset-bottom) + 28px); border-top: 1px solid var(--line); background: var(--card); display: flex; flex-direction: column; gap: 10px; }
+  .btn-row { display: flex; gap: 10px; }
+  .btn {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    border: none; cursor: pointer; font-family: var(--font); font-weight: 700; font-size: 14px;
+    padding: 13px; border-radius: 15px;
+  }
+  .btn svg { width: 17px; height: 17px; }
+  .btn.soft { background: rgba(20,24,26,0.05); color: var(--ink); }
+  .btn.primary {
+    width: 100%; font-size: 17px; font-weight: 800; padding: 16px;
+    background: linear-gradient(135deg, var(--green), var(--green-deep)); color: #fff;
+    box-shadow: 0 8px 22px rgba(34,197,94,0.34); transition: transform .12s ease;
+  }
+  .btn.primary:active { transform: scale(0.98); }
+
+  .caption { position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.9); font-size: 12px; z-index: 3; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="caption">识别食物 · 识别结果（可逐项核对 + 保存）</div>
+  <div class="backdrop"></div>
+
+  <div class="sheet">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <button class="close">关闭</button>
+      <div class="title">识别食物</div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="scroll">
+
+      <!-- recognized -->
+      <div class="recog">
+        <div class="thumb">IMG</div>
+        <div>
+          <div class="rchip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>
+            识别完成 · 3 种食物
+          </div>
+          <div class="rsub">点按下方候选可一键更正</div>
+        </div>
+      </div>
+
+      <!-- review banner -->
+      <div class="banner">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 1 21h22L12 2zm0 6 1 7h-2l1-7zm0 9.5a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6z"/></svg>
+        建议核对份量 / 识别结果
+      </div>
+
+      <!-- summary -->
+      <div class="summary">
+        <div class="sum-top">
+          <div class="kcal"><b class="num">560</b><span>kcal</span></div>
+          <div class="hbadge h-good"><b class="num">6/10</b><span>良</span></div>
+        </div>
+        <div class="macros">
+          <div class="macro m-protein"><b class="num">26g</b><span>蛋白质</span></div>
+          <div class="macro m-fat"><b class="num">18g</b><span>脂肪</span></div>
+          <div class="macro m-carbs"><b class="num">62g</b><span>碳水</span></div>
+        </div>
+      </div>
+
+      <!-- items -->
+      <div class="items-h">识别项</div>
+      <div class="items">
+        <div class="item">
+          <div class="item-row">
+            <div class="score sc-amber">5</div>
+            <span class="iname">米饭</span>
+            <span class="igram num">150g</span>
+            <span class="ik num">195<small>kcal</small></span>
+          </div>
+        </div>
+        <div class="item">
+          <div class="item-row">
+            <div class="score sc-mint">6</div>
+            <span class="iname">番茄炒蛋</span>
+            <span class="igram num">180g</span>
+            <span class="ik num">211<small>kcal</small></span>
+          </div>
+        </div>
+        <div class="item">
+          <div class="item-row">
+            <div class="score sc-green">8</div>
+            <span class="iname">牛奶</span>
+            <span class="igram num">240g</span>
+            <span class="ik num">154<small>kcal</small></span>
+          </div>
+          <div class="alts">
+            <span class="lbl">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg>
+              也可能是
+            </span>
+            <button class="chip">豆浆</button>
+            <button class="chip">燕麦奶</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- info -->
+      <div class="info">
+        <div class="iline">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M5 8h14l-1.5 4.5a6 6 0 0 1-11 0L5 8z"/><path d="M8 21h8"/></svg>
+          按一份约 250g 估算份量，可调整
+        </div>
+        <div class="iline">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9C.8 8.5 2.5 5 6 5c2 0 3.2 1.2 4 2.3C10.8 6.2 12 5 14 5c3.5 0 5.2 3.5 3.5 7-2.5 4.5-9.5 9-9.5 9z"/></svg>
+          整体较均衡，可再补充一些蔬菜提升膳食纤维
+        </div>
+      </div>
+
+      <div class="meta-line">识别模型：GPT-4o mini · 数值为 AI 估算 · 本次 Token 1,842</div>
+
+    </div>
+
+    <!-- save bar -->
+    <div class="savebar">
+      <div class="btn-row">
+        <button class="btn soft">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-11.9 7.6L3 21l1.9-6A8.5 8.5 0 1 1 21 11.5z"/></svg>
+          补充说明重识别
+        </button>
+        <button class="btn soft">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h2M10 16h10"/><circle cx="16" cy="8" r="2.2"/><circle cx="8" cy="16" r="2.2"/></svg>
+          调整份量后保存
+        </button>
+      </div>
+      <button class="btn primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+        直接保存
+      </button>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -14,17 +14,38 @@ struct WaterCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Label("饮水", systemImage: "drop.fill")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.tint)
-                Spacer()
-                Text("\(Int(totalML.rounded())) / \(Int(targetML.rounded())) mL")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        VStack(spacing: 14) {
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.waterBlue.opacity(0.14))
+                    .frame(width: 48, height: 48)
+                    .overlay {
+                        Image(systemName: "drop.fill")
+                            .font(.title3)
+                            .foregroundStyle(Color.waterBlue)
+                    }
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text("饮水")
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(Color.inkPrimary)
+                        Spacer()
+                        Text("\(Int(totalML.rounded())) / \(Int(targetML.rounded())) mL")
+                            .font(.subheadline)
+                            .monospacedDigit()
+                            .foregroundStyle(Color.inkTertiary)
+                    }
+                    ZStack(alignment: .leading) {
+                        Capsule().fill(Color.black.opacity(0.06))
+                        GeometryReader { geo in
+                            Capsule()
+                                .fill(Color.waterBlue)
+                                .frame(width: max(6, geo.size.width * progress))
+                        }
+                    }
+                    .frame(height: 8)
+                }
             }
-            ProgressView(value: progress).tint(.accentColor)
             HStack(spacing: 10) {
                 quickButton("+200", 200)
                 quickButton("+500", 500)
@@ -32,13 +53,17 @@ struct WaterCard: View {
                     showCustom = true
                 } label: {
                     Image(systemName: "slider.horizontal.3")
+                        .font(.subheadline.weight(.semibold))
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, 9)
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.plain)
+                .foregroundStyle(Color.waterBlue)
+                .background(Color.waterBlue.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                 .accessibilityLabel("自定义饮水量")
             }
         }
+        .cardStyle()
         .contentShape(Rectangle())
         .onTapGesture { onOpenLog() }
         .sheet(isPresented: $showCustom) {
@@ -51,12 +76,13 @@ struct WaterCard: View {
             onAdd(amount)
         } label: {
             Text(title)
-                .font(.subheadline.weight(.medium))
+                .font(.subheadline.weight(.bold))
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, 9)
         }
-        .buttonStyle(.bordered)
-        .tint(.accentColor)
+        .buttonStyle(.plain)
+        .foregroundStyle(Color.waterBlue)
+        .background(Color.waterBlue.opacity(0.12), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
 

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KcalShot · 设置</title>
+<link rel="stylesheet" href="../../design-systems/kcalshot/colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font); color: var(--ink);
+    background: radial-gradient(1200px 600px at 50% -200px, #EAF6EE 0%, transparent 60%), var(--bg);
+    display: flex; justify-content: center; padding: 40px 0 80px; -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .phone { width: 393px; min-height: 852px; display: flex; flex-direction: column; }
+
+  .status { display: flex; justify-content: space-between; align-items: center; padding: 14px 26px 6px; font-size: 14px; font-weight: 700; }
+  .status .dots { display: flex; gap: 5px; align-items: center; }
+  .status svg { width: 17px; height: 17px; }
+
+  .header { padding: 10px 22px 4px; }
+  .header .hi { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  .header .title { font-size: 26px; font-weight: 800; margin-top: 2px; }
+
+  .scroll { padding: 6px 18px; display: flex; flex-direction: column; }
+  .sec-label { font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 18px 6px 8px; }
+  .card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow-card); overflow: hidden; }
+
+  .row { display: flex; align-items: center; gap: 12px; padding: 13px 14px; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .ic { width: 30px; height: 30px; border-radius: 9px; flex: none; display: grid; place-items: center; }
+  .row .ic svg { width: 18px; height: 18px; }
+  .row .title { flex: 1; font-size: 15px; font-weight: 500; }
+  .row .val { font-size: 14px; color: var(--ink-3); font-weight: 500; }
+  .row .chev { color: var(--ink-3); }
+  .row .chev svg { width: 17px; height: 17px; display: block; }
+
+  .t-coral { background: rgba(255,107,74,0.14); color: var(--coral); }
+  .t-green { background: rgba(34,197,94,0.14); color: var(--green-deep); }
+  .t-orange { background: rgba(255,176,32,0.16); color: #B47600; }
+  .t-water { background: rgba(56,189,248,0.16); color: var(--water); }
+  .t-gray { background: rgba(20,24,26,0.06); color: var(--ink-2); }
+
+  .switch { width: 46px; height: 28px; border-radius: 999px; background: var(--green); position: relative; flex: none; }
+  .switch.off { background: rgba(20,24,26,0.16); }
+  .switch .knob { position: absolute; top: 3px; left: 21px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .switch.off .knob { left: 3px; }
+
+  .stepper { display: flex; align-items: center; gap: 0; border-radius: 999px; background: rgba(20,24,26,0.05); }
+  .stepper button { width: 32px; height: 30px; border: none; background: none; font-size: 18px; font-weight: 700; color: var(--green-deep); cursor: pointer; }
+  .stepper .sv { font-size: 14px; font-weight: 700; min-width: 62px; text-align: center; }
+
+  .footer-note { font-size: 12px; color: var(--ink-3); padding: 8px 8px 0; line-height: 1.45; }
+
+  .caption { text-align: center; color: var(--ink-3); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status num">
+    <span>9:41</span>
+    <span class="dots">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h3v4H2zM7 13h3v8H7zM12 9h3v12h-3zM17 5h3v16h-3z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 15.5a6 6 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="18" height="10" rx="3"/><rect x="21" y="10" width="1.5" height="4" rx="1"/></svg>
+    </span>
+  </div>
+
+  <div class="header">
+    <div class="hi">偏好与数据</div>
+    <div class="title">设置</div>
+  </div>
+
+  <div class="scroll">
+
+    <div class="sec-label">API &amp; 模型</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1.5 1.5"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1.5-1.5"/></svg></div>
+        <div class="title">API 设置</div>
+        <div class="val">已配置</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="row">
+        <div class="ic t-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9zM2 10h2M2 14h2M20 10h2M20 14h2M10 2v2M14 2v2M10 20v2M14 20v2"/></svg></div>
+        <div class="title">模型管理</div>
+        <div class="val">3 个</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+    </div>
+
+    <div class="sec-label">识别</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-orange"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l1.7 4.4 4.4 1.7-4.4 1.7L12 14.7l-1.7-4.4L5.9 8.6l4.4-1.7z"/></svg></div>
+        <div class="title">高精度模式</div>
+        <div class="switch"><div class="knob"></div></div>
+      </div>
+      <div class="row">
+        <div class="ic t-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2-6 4 12 2-6h4"/></svg></div>
+        <div class="title">采样次数</div>
+        <div class="stepper"><button>−</button><span class="sv num">3</span><button>+</button></div>
+      </div>
+      <div class="row">
+        <div class="ic t-water"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+        <div class="title">Token 用量</div>
+        <div class="val">今日 1,842</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+    </div>
+    <div class="footer-note">开启后每次识别对同一张照片多次采样取中位数，更稳但成本与耗时按次数倍增。</div>
+
+    <div class="sec-label">照片</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-coral"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z"/><circle cx="12" cy="13" r="3.4"/></svg></div>
+        <div class="title">保存原图到相册</div>
+        <div class="switch off"><div class="knob"></div></div>
+      </div>
+    </div>
+
+    <div class="sec-label">每日目标</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.4" fill="currentColor"/></svg></div>
+        <div class="title">目标热量</div>
+        <div class="val num">1,800 kcal</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="row">
+        <div class="ic t-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M5 8h14l-1.5 4.5a6 6 0 0 1-11 0L5 8zM8 21h8"/></svg></div>
+        <div class="title">体重记录</div>
+        <div class="val num">68.1 kg</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="row">
+        <div class="ic t-water"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5S5.5 10 5.5 14.5a6.5 6.5 0 0 0 13 0C18.5 10 12 2.5 12 2.5z"/></svg></div>
+        <div class="title">饮水记录</div>
+        <div class="val num">1,200 mL</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="row">
+        <div class="ic t-water"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M3 12h18"/></svg></div>
+        <div class="title">饮水目标</div>
+        <div class="stepper"><button>−</button><span class="sv num">2000 mL</span><button>+</button></div>
+      </div>
+    </div>
+
+    <div class="sec-label">健康同步</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-coral"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7-4.5-9.5-9C.8 8.5 2.5 5 6 5c2 0 3.2 1.2 4 2.3C10.8 6.2 12 5 14 5c3.5 0 5.2 3.5 3.5 7-2.5 4.5-9.5 9-9.5 9z"/></svg></div>
+        <div class="title">同步到 Apple 健康</div>
+        <div class="switch"><div class="knob"></div></div>
+      </div>
+    </div>
+
+    <div class="sec-label">界面</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18"/></svg></div>
+        <div class="title">语言</div>
+        <div class="val">跟随系统</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 9l4-4 4 4M8 15l4 4 4-4"/></svg></div>
+      </div>
+    </div>
+
+    <div class="sec-label">数据</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-orange"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3M12 3v12M8 11l4 4 4-4"/></svg></div>
+        <div class="title">导出与备份</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+    </div>
+
+    <div class="sec-label">关于</div>
+    <div class="card">
+      <div class="row">
+        <div class="ic t-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg></div>
+        <div class="title">数据与隐私</div>
+        <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+      </div>
+      <div class="row">
+        <div class="ic t-gray"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></div>
+        <div class="title">版本</div>
+        <div class="val num">1.0 (1)</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="caption">KcalShot · 设置 · 分组卡片 + 撞色图标磁贴</div>
+</div>
+</body>
+</html>

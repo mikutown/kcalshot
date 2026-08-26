@@ -8,77 +8,182 @@ struct RecognitionResultCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 14) {
             if result.needsReview {
-                Label("建议核对份量/识别结果", systemImage: "exclamationmark.triangle.fill")
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(.orange)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(10)
-                    .background(.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
+                reviewBanner
             }
+            summaryCard
+            itemsCard
+            infoLines
+            metaLine
+        }
+    }
 
+    // MARK: - 核对提示
+
+    private var reviewBanner: some View {
+        HStack(spacing: 9) {
+            Image(systemName: "exclamationmark.triangle.fill")
+            Text("建议核对份量 / 识别结果")
+                .font(.subheadline.weight(.bold))
+            Spacer()
+        }
+        .foregroundStyle(Color(red: 180.0/255, green: 118.0/255, blue: 0))
+        .padding(12)
+        .background(Color.brandOrange.opacity(0.14), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    // MARK: - 汇总
+
+    private var summaryCard: some View {
+        VStack(spacing: 16) {
             HStack(alignment: .firstTextBaseline) {
-                Text("\(Int(result.totalCalories.rounded()))")
-                    .font(.system(size: 40, weight: .bold))
-                Text("kcal").foregroundStyle(.secondary)
+                (Text("\(Int(result.totalCalories.rounded()))")
+                    .font(.system(size: 40, weight: .bold)).monospacedDigit()
+                 + Text(" kcal")
+                    .font(.headline).foregroundStyle(Color.inkTertiary))
+                    .foregroundStyle(Color.inkPrimary)
                 Spacer()
                 healthBadge
             }
-
-            HStack(spacing: 12) {
-                macro("蛋白质", result.totalProtein)
-                macro("脂肪", result.totalFat)
-                macro("碳水", result.totalCarbs)
+            HStack(spacing: 10) {
+                macroTile("蛋白质", result.totalProtein, tint: .brandGreen, labelColor: .brandGreenDeep)
+                macroTile("脂肪", result.totalFat, tint: .brandCoral, labelColor: Color(red: 214.0/255, green: 74.0/255, blue: 42.0/255))
+                macroTile("碳水", result.totalCarbs, tint: .brandOrange, labelColor: Color(red: 180.0/255, green: 118.0/255, blue: 0))
             }
+        }
+        .cardStyle()
+    }
 
-            Divider()
+    private var healthBadge: some View {
+        let color = HealthScore.color(result.healthScore)
+        return VStack(spacing: 1) {
+            Text("\(result.healthScore)/10")
+                .font(.system(size: 15, weight: .heavy)).monospacedDigit()
+            Text(HealthScore.label(result.healthScore))
+                .font(.system(size: 11, weight: .bold))
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 7)
+        .background(color.opacity(0.15), in: Capsule())
+        .foregroundStyle(color)
+    }
 
-            VStack(alignment: .leading, spacing: 10) {
-                ForEach(Array(result.items.enumerated()), id: \.element.id) { index, item in
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack(spacing: 8) {
-                            Text("\(item.healthScore)")
-                                .font(.caption.bold())
-                                .frame(width: 22, height: 22)
-                                .background(HealthScore.color(item.healthScore).opacity(0.18), in: Circle())
-                                .foregroundStyle(HealthScore.color(item.healthScore))
-                            Text(item.name)
-                            Text("\(Int(item.grams.rounded()))g")
-                                .foregroundStyle(.secondary)
-                            Spacer()
-                            Text("\(Int(item.calories.rounded())) kcal")
-                                .foregroundStyle(.secondary)
-                        }
-                        .font(.subheadline)
+    private func macroTile(_ name: String, _ value: Double, tint: Color, labelColor: Color) -> some View {
+        VStack(spacing: 2) {
+            Text("\(Int(value.rounded()))g")
+                .font(.system(size: 18, weight: .heavy)).monospacedDigit()
+                .foregroundStyle(Color.inkPrimary)
+                .lineLimit(1).minimumScaleFactor(0.6)
+            Text(name)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(labelColor)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 11)
+        .background(tint.opacity(0.11), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
 
-                        if !item.alternatives.isEmpty {
-                            alternativeChips(for: index, item: item)
-                        }
-                    }
+    // MARK: - 识别项
+
+    private var itemsCard: some View {
+        VStack(spacing: 0) {
+            ForEach(Array(result.items.enumerated()), id: \.element.id) { index, item in
+                itemRow(index: index, item: item)
+                if index < result.items.count - 1 {
+                    Divider().overlay(Color.hairline)
                 }
             }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
+        .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 6)
+    }
 
+    private func itemRow(index: Int, item: FoodItem) -> some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 10) {
+                Text("\(item.healthScore)")
+                    .font(.caption.bold())
+                    .frame(width: 24, height: 24)
+                    .background(HealthScore.color(item.healthScore).opacity(0.16), in: Circle())
+                    .foregroundStyle(HealthScore.color(item.healthScore))
+                Text(item.name)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color.inkPrimary)
+                Text("\(Int(item.grams.rounded()))g")
+                    .font(.footnote)
+                    .foregroundStyle(Color.inkTertiary)
+                Spacer(minLength: 6)
+                (Text("\(Int(item.calories.rounded()))").font(.subheadline.weight(.bold)).monospacedDigit()
+                 + Text(" kcal").font(.caption2).foregroundStyle(Color.inkTertiary))
+                    .foregroundStyle(Color.inkPrimary)
+            }
+            if !item.alternatives.isEmpty {
+                alternativeChips(for: index, item: item)
+            }
+        }
+        .padding(.vertical, 13)
+    }
+
+    /// 易混项的候选切换：点一下即用候选的名称与营养替换该项（克数不变）。
+    private func alternativeChips(for index: Int, item: FoodItem) -> some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                    Text("也可能是")
+                }
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(Color.inkTertiary)
+                ForEach(item.alternatives.indices, id: \.self) { altIndex in
+                    Button {
+                        result.items[index].selectAlternative(at: altIndex)
+                    } label: {
+                        Text(item.alternatives[altIndex].name)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 11)
+                            .padding(.vertical, 5)
+                            .background(Color.brandGreen.opacity(0.12), in: Capsule())
+                            .foregroundStyle(Color.brandGreenDeep)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.leading, 34)
+        }
+    }
+
+    // MARK: - 说明 / 元信息
+
+    @ViewBuilder
+    private var infoLines: some View {
+        VStack(alignment: .leading, spacing: 8) {
             if !result.assumptions.isEmpty {
                 infoLine(icon: "scalemass", text: result.assumptions)
             }
             if !result.reason.isEmpty {
                 infoLine(icon: "heart.text.square", text: result.reason)
             }
-
-            Text("识别模型：\(modelName) · 数值为 AI 估算")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-            tokenLine
         }
-        .padding()
-        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))
+        .padding(.horizontal, 4)
     }
 
-    @ViewBuilder
-    private var tokenLine: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "number")
+    private func infoLine(icon: String, text: String) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Image(systemName: icon)
+                .font(.footnote)
+                .foregroundStyle(Color.inkTertiary)
+            Text(text)
+                .font(.footnote)
+                .foregroundStyle(Color.inkSecondary)
+        }
+    }
+
+    private var metaLine: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("识别模型：\(modelName) · 数值为 AI 估算")
             if let usage = result.tokenUsage {
                 Text("本次 Token：\(usage.total)（输入 \(usage.prompt) / 输出 \(usage.completion)）")
             } else {
@@ -86,63 +191,8 @@ struct RecognitionResultCard: View {
             }
         }
         .font(.caption2)
-        .foregroundStyle(.tertiary)
-    }
-
-    private var healthBadge: some View {
-        VStack(spacing: 2) {
-            Text("\(result.healthScore)/10")
-                .font(.headline)
-            Text(HealthScore.label(result.healthScore))
-                .font(.caption2)
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(HealthScore.color(result.healthScore).opacity(0.18), in: Capsule())
-        .foregroundStyle(HealthScore.color(result.healthScore))
-    }
-
-    private func macro(_ name: LocalizedStringKey, _ value: Double) -> some View {
-        VStack(spacing: 2) {
-            Text("\(Int(value.rounded()))g").font(.headline)
-            Text(name).font(.caption).foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .background(Color(.tertiarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
-    }
-
-    /// 易混项的候选切换：点一下即用候选的名称与营养替换该项（克数不变）。
-    private func alternativeChips(for index: Int, item: FoodItem) -> some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
-                Image(systemName: "arrow.triangle.2.circlepath")
-                    .font(.caption2)
-                    .foregroundStyle(.orange)
-                Text("也可能是").font(.caption2).foregroundStyle(.secondary)
-                ForEach(item.alternatives.indices, id: \.self) { altIndex in
-                    Button {
-                        result.items[index].selectAlternative(at: altIndex)
-                    } label: {
-                        Text(item.alternatives[altIndex].name)
-                            .font(.caption)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Color.accentColor.opacity(0.12), in: Capsule())
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.leading, 30)
-        }
-    }
-
-    private func infoLine(icon: String, text: String) -> some View {
-        HStack(alignment: .top, spacing: 6) {
-            Image(systemName: icon).foregroundStyle(.secondary)
-            Text(text).font(.footnote).foregroundStyle(.secondary)
-        }
+        .foregroundStyle(Color.inkTertiary)
+        .padding(.horizontal, 4)
     }
 }
 
@@ -168,24 +218,27 @@ enum HealthScore {
 }
 
 #Preview {
-    RecognitionResultCard(result: .constant(RecognitionResult(
-        items: [
-            FoodItem(name: "米饭", grams: 150, caloriesPer100g: 130, proteinPer100g: 2.6, fatPer100g: 0.3, carbsPer100g: 28),
-            FoodItem(
-                name: "牛奶", grams: 240, caloriesPer100g: 64, proteinPer100g: 3.3, fatPer100g: 3.6, carbsPer100g: 5,
-                healthScore: 8, healthReason: "蛋白质来源",
-                alternatives: [
-                    FoodAlternative(name: "豆浆", caloriesPer100g: 31, proteinPer100g: 1.8, fatPer100g: 0.7, carbsPer100g: 3.7, healthScore: 8, healthReason: "植物蛋白"),
-                    FoodAlternative(name: "燕麦奶", caloriesPer100g: 47, proteinPer100g: 1, fatPer100g: 1.5, carbsPer100g: 7, healthScore: 7, healthReason: "含膳食纤维"),
-                ]
-            ),
-        ],
-        healthScore: 5,
-        reason: "脂肪偏高，建议搭配蔬菜",
-        recognitionConfidence: 0.6,
-        portionAssumed: true,
-        assumptions: "按一份约 250g 估算",
-        modelUsed: "GPT-4o"
-    )))
-    .padding()
+    ScrollView {
+        RecognitionResultCard(result: .constant(RecognitionResult(
+            items: [
+                FoodItem(name: "米饭", grams: 150, caloriesPer100g: 130, proteinPer100g: 2.6, fatPer100g: 0.3, carbsPer100g: 28, healthScore: 5),
+                FoodItem(
+                    name: "牛奶", grams: 240, caloriesPer100g: 64, proteinPer100g: 3.3, fatPer100g: 3.6, carbsPer100g: 5,
+                    healthScore: 8, healthReason: "蛋白质来源",
+                    alternatives: [
+                        FoodAlternative(name: "豆浆", caloriesPer100g: 31, proteinPer100g: 1.8, fatPer100g: 0.7, carbsPer100g: 3.7, healthScore: 8, healthReason: "植物蛋白"),
+                        FoodAlternative(name: "燕麦奶", caloriesPer100g: 47, proteinPer100g: 1, fatPer100g: 1.5, carbsPer100g: 7, healthScore: 7, healthReason: "含膳食纤维"),
+                    ]
+                ),
+            ],
+            healthScore: 6,
+            reason: "整体较均衡，可再补充一些蔬菜",
+            recognitionConfidence: 0.6,
+            portionAssumed: true,
+            assumptions: "按一份约 250g 估算",
+            modelUsed: "GPT-4o"
+        )))
+        .padding()
+    }
+    .background(Color.appBackground)
 }

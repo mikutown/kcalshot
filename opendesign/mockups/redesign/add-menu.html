@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KcalShot · 添加记录</title>
+<link rel="stylesheet" href="../../design-systems/kcalshot/colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font); color: var(--ink);
+    display: flex; justify-content: center; padding: 40px 0 80px;
+    background: #E7E9E4; -webkit-font-smoothing: antialiased;
+  }
+
+  .phone {
+    width: 393px; min-height: 852px; position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background:
+      radial-gradient(1000px 500px at 50% -200px, #EAF6EE 0%, transparent 60%),
+      var(--bg);
+    overflow: hidden;
+  }
+  .backdrop { position: absolute; inset: 0; background: rgba(20,24,26,0.34); backdrop-filter: blur(2px); }
+
+  /* 中央 FAB 显示为按下态（弹层由它弹出） */
+  .fab-hint {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    width: 58px; height: 58px; border-radius: 21px;
+    background: linear-gradient(140deg, var(--coral), var(--orange));
+    box-shadow: var(--shadow-fab); display: grid; place-items: center; z-index: 3;
+  }
+  .fab-hint svg { width: 26px; height: 26px; color: #fff; transform: rotate(45deg); }
+
+  .sheet {
+    position: relative; z-index: 2; background: var(--card);
+    border-radius: 30px 30px 0 0; box-shadow: 0 -12px 40px rgba(20,24,26,0.18);
+    padding: 10px 18px 26px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .grabber { width: 40px; height: 5px; border-radius: 999px; background: var(--line); margin: 4px auto 6px; }
+  .sheet-title { text-align: center; font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+
+  .opt {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--card-soft); border: 1px solid var(--line);
+    border-radius: 20px; padding: 14px 16px; cursor: pointer;
+    transition: transform .1s ease, background .1s ease;
+  }
+  .opt:active { transform: scale(0.985); background: #F2F3F0; }
+  .opt .tile {
+    width: 48px; height: 48px; border-radius: 15px; flex: none;
+    display: grid; place-items: center;
+  }
+  .opt .tile svg { width: 24px; height: 24px; }
+  .opt .txt { flex: 1; }
+  .opt .txt b { font-size: 16px; font-weight: 700; display: block; }
+  .opt .txt span { font-size: 12.5px; color: var(--ink-3); font-weight: 500; }
+  .opt .chev { color: var(--ink-3); }
+  .opt .chev svg { width: 18px; height: 18px; display: block; }
+
+  .t-coral { background: rgba(255,107,74,0.14); color: var(--coral); }
+  .t-green { background: rgba(34,197,94,0.14); color: var(--green-deep); }
+  .t-water { background: rgba(56,189,248,0.16); color: var(--water); }
+  .t-orange { background: rgba(255,176,32,0.16); color: #B47600; }
+
+  .cancel {
+    margin-top: 6px; border: none; cursor: pointer;
+    background: rgba(20,24,26,0.05); color: var(--ink);
+    font-family: var(--font); font-size: 16px; font-weight: 700;
+    padding: 15px; border-radius: 18px;
+  }
+
+  .caption { position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.9); font-size: 12px; z-index: 4; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="caption">点「+」弹出 · 添加记录菜单</div>
+  <div class="backdrop"></div>
+  <div class="fab-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  </div>
+
+  <div class="sheet">
+    <div class="grabber"></div>
+    <div class="sheet-title">添加记录</div>
+
+    <div class="opt">
+      <div class="tile t-coral">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 6H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-4z"/><circle cx="12" cy="13" r="3.4"/></svg>
+      </div>
+      <div class="txt"><b>拍照识别</b><span>拍一张或从相册选，AI 识别热量与营养</span></div>
+      <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>
+
+    <div class="opt">
+      <div class="tile t-green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5h16v2M9 5v14M7 19h4"/><path d="M14 12h6M14 16h6M14 20h6"/></svg>
+      </div>
+      <div class="txt"><b>文字记录</b><span>用一句话描述这一餐</span></div>
+      <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>
+
+    <div class="opt">
+      <div class="tile t-water">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5S5.5 10 5.5 14.5a6.5 6.5 0 0 0 13 0C18.5 10 12 2.5 12 2.5z"/></svg>
+      </div>
+      <div class="txt"><b>记录饮水</b><span>快速记录喝水量</span></div>
+      <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>
+
+    <div class="opt">
+      <div class="tile t-orange">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.8 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z"/></svg>
+      </div>
+      <div class="txt"><b>常吃 / 收藏</b><span>从常吃食物一键添加</span></div>
+      <div class="chev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></div>
+    </div>
+
+    <button class="cancel">取消</button>
+  </div>
+</div>
+</body>
+</html>

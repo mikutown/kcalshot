@@ -1,0 +1,50 @@
+/* KcalShot — vibrant design system tokens
+   Direction: 活力鲜明 · 圆角卡片撞色
+   Palette: 活力绿 primary, 珊红 / 橙黄 accents, warm off-white base */
+
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Brand */
+  --green:      #22C55E;   /* primary — energy, on-target */
+  --green-deep: #16A34A;
+  --coral:      #FF6B4A;   /* accent — protein / camera / alerts of appetite */
+  --orange:     #FFB020;   /* accent — carbs / over-budget warmth */
+  --gold:       #FFC24B;
+
+  /* Macro roles */
+  --protein: #22C55E;
+  --carbs:   #FFB020;
+  --fat:     #FF6B4A;
+  --water:   #38BDF8;
+
+  /* Surfaces */
+  --bg:        #F7F8F5;   /* warm off-white app background */
+  --card:      #FFFFFF;
+  --card-soft: #FBFBF9;   /* nested tint */
+  --line:      #EEF0EC;   /* hairline dividers */
+
+  /* Ink */
+  --ink:      #14181A;    /* headlines / big numbers */
+  --ink-2:    #5B6560;    /* secondary text */
+  --ink-3:    #9AA39D;    /* tertiary / captions */
+  --on-color: #FFFFFF;
+
+  /* Energy ring gradient */
+  --ring-from: #22C55E;
+  --ring-to:   #FFB020;
+
+  /* Radii */
+  --r-card: 24px;
+  --r-pill: 999px;
+  --r-tile: 18px;
+
+  /* Shadows (soft, low-contrast) */
+  --shadow-card: 0 6px 20px rgba(20, 24, 26, 0.06), 0 1px 3px rgba(20, 24, 26, 0.04);
+  --shadow-fab:  0 8px 22px rgba(255, 107, 74, 0.36);
+  --shadow-pop:  0 12px 34px rgba(20, 24, 26, 0.12);
+
+  /* Type */
+  --font: 'Sora', -apple-system, system-ui, sans-serif;
+  --num:  'Sora', ui-monospace, monospace; /* tabular numbers via font-feature */
+}

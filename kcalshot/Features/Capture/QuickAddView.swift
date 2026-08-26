@@ -11,7 +11,12 @@ struct QuickAddView: View {
 
     /// 新记录归属的日期。
     var targetDate: Date = .now
-    @State private var mealType: MealType = .suggested()
+    @State private var mealType: MealType
+
+    init(targetDate: Date = .now, targetMeal: MealType? = nil) {
+        self.targetDate = targetDate
+        _mealType = State(initialValue: targetMeal ?? .suggested())
+    }
 
     /// 购物车：待添加项，用户可逐一调整克数。
     @State private var cart: [CartItem] = []

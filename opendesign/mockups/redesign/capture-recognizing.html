@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KcalShot · 识别中</title>
+<link rel="stylesheet" href="../../design-systems/kcalshot/colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font); color: var(--ink);
+    display: flex; justify-content: center; padding: 40px 0 80px;
+    background: #E7E9E4; -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+  .phone {
+    width: 393px; min-height: 852px; position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background:
+      radial-gradient(1000px 500px at 50% -200px, #EAF6EE 0%, transparent 60%),
+      var(--bg);
+    overflow: hidden;
+  }
+  .backdrop { position: absolute; inset: 0; background: rgba(20,24,26,0.34); backdrop-filter: blur(2px); }
+
+  .sheet {
+    position: relative; z-index: 2; background: var(--card);
+    border-radius: 30px 30px 0 0; box-shadow: 0 -12px 40px rgba(20,24,26,0.18);
+    padding: 10px 20px 30px; display: flex; flex-direction: column; gap: 20px;
+    min-height: 720px;
+  }
+  .grabber { width: 40px; height: 5px; border-radius: 999px; background: var(--line); margin: 4px auto 2px; }
+  .sheet-head { display: flex; align-items: center; justify-content: space-between; }
+  .sheet-head .close { border: none; background: transparent; cursor: pointer; font-family: var(--font); font-size: 15px; font-weight: 600; color: var(--ink-2); }
+  .sheet-head .title { font-size: 17px; font-weight: 800; }
+  .sheet-head .spacer { width: 34px; }
+
+  /* shrunk photo with scan shimmer */
+  .photo {
+    position: relative; width: 240px; aspect-ratio: 4/3; margin: 6px auto 0;
+    border-radius: 20px; overflow: hidden;
+    background: repeating-linear-gradient(45deg, #F0F1EE 0 14px, #F7F8F5 14px 28px);
+    display: grid; place-items: center;
+    box-shadow: var(--shadow-card);
+  }
+  .photo .ph-label { font-family: ui-monospace, monospace; font-size: 11px; color: var(--ink-3); background: rgba(255,255,255,0.7); padding: 5px 10px; border-radius: 999px; }
+  .photo .scan {
+    position: absolute; left: 0; right: 0; height: 42%;
+    background: linear-gradient(180deg, transparent, rgba(34,197,94,0.28), transparent);
+    animation: sweep 1.6s ease-in-out infinite;
+  }
+  @keyframes sweep { 0% { top: -42%; } 100% { top: 100%; } }
+
+  .head-txt { text-align: center; }
+  .head-txt h2 { font-size: 20px; font-weight: 800; }
+  .head-txt p { font-size: 13px; color: var(--ink-3); font-weight: 500; margin-top: 4px; }
+
+  /* stepper */
+  .steps { background: var(--card-soft); border: 1px solid var(--line); border-radius: var(--r-card); padding: 20px 18px; }
+  .step { display: flex; gap: 14px; align-items: flex-start; position: relative; }
+  .step:not(:last-child) { margin-bottom: 22px; }
+  .step .node {
+    width: 30px; height: 30px; border-radius: 999px; flex: none;
+    display: grid; place-items: center; position: relative; z-index: 1;
+  }
+  .step:not(:last-child) .node::after {
+    content: ''; position: absolute; left: 50%; top: 30px; transform: translateX(-50%);
+    width: 2px; height: 30px; background: var(--line);
+  }
+  .step.done:not(:last-child) .node::after { background: var(--green); }
+  .step.done .node { background: var(--green); color: #fff; }
+  .step.done .node svg { width: 17px; height: 17px; }
+  .step.active .node { background: #fff; border: 2px solid var(--green); }
+  .step.pending .node { background: var(--line); }
+
+  .spinner {
+    width: 16px; height: 16px; border-radius: 999px;
+    border: 2.5px solid rgba(34,197,94,0.25); border-top-color: var(--green);
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .step .body { padding-top: 3px; }
+  .step .body b { font-size: 15px; font-weight: 700; display: block; }
+  .step.pending .body b { color: var(--ink-3); }
+  .step .body span { font-size: 13px; color: var(--ink-3); font-weight: 500; }
+  .step.active .body span { color: var(--green-deep); font-weight: 600; }
+  .step .body .bar { height: 6px; border-radius: 999px; background: rgba(34,197,94,0.15); overflow: hidden; margin-top: 8px; width: 190px; }
+  .step .body .bar > span { display: block; height: 100%; background: var(--green); border-radius: 999px; animation: fill 1.8s ease-in-out infinite; }
+  @keyframes fill { 0% { width: 15%; } 50% { width: 80%; } 100% { width: 15%; } }
+
+  .spring { flex: 1; min-height: 8px; }
+
+  .btn-busy {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; border: none; cursor: default;
+    background: rgba(34,197,94,0.16); color: var(--green-deep);
+    font-family: var(--font); font-size: 17px; font-weight: 800;
+    padding: 17px; border-radius: 20px;
+  }
+  .btn-busy .spinner { border-color: rgba(34,197,94,0.3); border-top-color: var(--green-deep); }
+
+  .caption { position: absolute; top: 12px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,0.9); font-size: 12px; z-index: 3; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="caption">识别食物 · 识别中（上传完成 → 模型分析）</div>
+  <div class="backdrop"></div>
+
+  <div class="sheet">
+    <div class="grabber"></div>
+    <div class="sheet-head">
+      <button class="close">关闭</button>
+      <div class="title">识别食物</div>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="photo">
+      <span class="ph-label">PHOTO · 食物照片</span>
+      <div class="scan"></div>
+    </div>
+
+    <div class="head-txt">
+      <h2>正在识别这一餐…</h2>
+      <p>请稍候，识别出食物后可逐项核对</p>
+    </div>
+
+    <!-- stepper -->
+    <div class="steps">
+      <div class="step done">
+        <div class="node"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg></div>
+        <div class="body"><b>上传照片</b><span>已上传</span></div>
+      </div>
+      <div class="step active">
+        <div class="node"><div class="spinner"></div></div>
+        <div class="body">
+          <b>分析食物与营养</b>
+          <span>正在识别，分析食物与营养…</span>
+          <div class="bar"><span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spring"></div>
+
+    <button class="btn-busy">
+      <div class="spinner"></div>
+      识别中…
+    </button>
+  </div>
+</div>
+</body>
+</html>

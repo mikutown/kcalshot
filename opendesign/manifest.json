@@ -1,0 +1,36 @@
+{
+  "generated": "2026-08-25T07:00:00Z",
+  "sections": [
+    {
+      "id": "mockups",
+      "label": "Mockups",
+      "groups": [
+        {
+          "slug": "redesign",
+          "files": [
+            { "label": "今天主屏", "path": "mockups/redesign/today.html" },
+            { "label": "记录", "path": "mockups/redesign/diary.html" },
+            { "label": "统计", "path": "mockups/redesign/insights.html" },
+            { "label": "设置", "path": "mockups/redesign/settings.html" },
+            { "label": "添加记录菜单", "path": "mockups/redesign/add-menu.html" },
+            { "label": "识别前预览", "path": "mockups/redesign/capture-preview.html" },
+            { "label": "识别中", "path": "mockups/redesign/capture-recognizing.html" },
+            { "label": "识别结果", "path": "mockups/redesign/capture-result.html" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "design-systems",
+      "label": "Design Systems",
+      "groups": [
+        {
+          "slug": "kcalshot",
+          "files": [
+            { "label": "colors_and_type.css", "path": "design-systems/kcalshot/colors_and_type.css" }
+          ]
+        }
+      ]
+    }
+  ]
+}

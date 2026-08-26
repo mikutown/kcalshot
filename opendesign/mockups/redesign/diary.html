@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KcalShot · 记录</title>
+<link rel="stylesheet" href="../../design-systems/kcalshot/colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font); color: var(--ink);
+    background: radial-gradient(1200px 600px at 50% -200px, #EAF6EE 0%, transparent 60%), var(--bg);
+    display: flex; justify-content: center; padding: 40px 0 80px; -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; }
+  .phone { width: 393px; min-height: 852px; display: flex; flex-direction: column; }
+
+  .status { display: flex; justify-content: space-between; align-items: center; padding: 14px 26px 6px; font-size: 14px; font-weight: 700; }
+  .status .dots { display: flex; gap: 5px; align-items: center; }
+  .status svg { width: 17px; height: 17px; }
+
+  .header { padding: 10px 22px 8px; }
+  .header .hi { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  .header .title { font-size: 26px; font-weight: 800; margin-top: 2px; }
+
+  .scroll { padding: 8px 18px; display: flex; flex-direction: column; gap: 16px; }
+  .card { background: var(--card); border-radius: var(--r-card); box-shadow: var(--shadow-card); padding: 18px 16px; }
+
+  /* month nav */
+  .monthnav { display: flex; align-items: center; justify-content: space-between; padding: 2px 8px 12px; }
+  .monthnav .m { font-size: 18px; font-weight: 800; }
+  .monthnav button { width: 34px; height: 34px; border-radius: var(--r-pill); border: none; cursor: pointer;
+    background: rgba(20,24,26,0.05); color: var(--ink); display: grid; place-items: center; }
+  .monthnav button svg { width: 18px; height: 18px; }
+
+  .weekhead { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; }
+  .weekhead span { text-align: center; font-size: 12px; font-weight: 600; color: var(--ink-3); }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px 4px; }
+  .cell { display: flex; justify-content: center; }
+  .day {
+    width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+    background: conic-gradient(var(--c, var(--line)) calc(var(--p, 0) * 1%), var(--line) 0);
+  }
+  .day .inner {
+    width: 33px; height: 33px; border-radius: 50%; background: var(--card);
+    display: grid; place-items: center; font-size: 13px; font-weight: 600; color: var(--ink);
+  }
+  .day.none { background: none; }
+  .day.none .inner { color: var(--ink-3); font-weight: 500; }
+  .day.today .inner { background: var(--green); color: #fff; font-weight: 800; }
+  .blank { height: 40px; }
+
+  .legend { display: flex; gap: 16px; justify-content: center; margin-top: 4px; }
+  .legend span { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); font-weight: 600; }
+  .legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+
+  .caption { text-align: center; color: var(--ink-3); font-size: 12px; margin-top: 22px; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="status num">
+    <span>9:41</span>
+    <span class="dots">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h3v4H2zM7 13h3v8H7zM12 9h3v12h-3zM17 5h3v16h-3z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 15.5a6 6 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="18" height="10" rx="3"/><rect x="21" y="10" width="1.5" height="4" rx="1"/></svg>
+    </span>
+  </div>
+
+  <div class="header">
+    <div class="hi">月度摄入达标一览</div>
+    <div class="title">记录</div>
+  </div>
+
+  <div class="scroll">
+    <div class="card">
+      <div class="monthnav">
+        <button aria-label="上个月"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="m">2026年8月</div>
+        <button aria-label="下个月"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+      </div>
+      <div class="weekhead"><span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span></div>
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <div class="legend">
+      <span><i style="background:var(--green)"></i>适中</span>
+      <span><i style="background:var(--orange)"></i>不足</span>
+      <span><i style="background:var(--coral)"></i>超出</span>
+      <span><i style="background:var(--line)"></i>未记录</span>
+    </div>
+  </div>
+
+  <div class="caption">KcalShot · 记录 · 进度环日历（点某天进当日详情）</div>
+</div>
+
+<script>
+  // 2026年8月：1号为周六 → 前置 6 个空位。今天 25 号。
+  const green = 'var(--green)', orange = 'var(--orange)', coral = 'var(--coral)';
+  // day -> [status color, fill%]；未记录用 null
+  const data = {
+    1:[green,72], 2:[orange,48], 3:[green,88], 4:[coral,100], 5:[green,80],
+    6:null, 7:[green,76], 8:[orange,40], 9:[green,92], 10:[green,84], 11:[coral,100],
+    12:[green,78], 13:[green,70], 14:[orange,52], 15:null, 16:[green,86],
+    17:[green,90], 18:[coral,100], 19:[green,74], 20:[coral,100], 21:[green,82],
+    22:[orange,44], 23:[green,88], 24:[coral,100], 25:[green,31]
+  };
+  const today = 25, leading = 6, days = 31;
+  const grid = document.getElementById('grid');
+  for (let i = 0; i < leading; i++) {
+    const b = document.createElement('div'); b.className = 'blank'; grid.appendChild(b);
+  }
+  for (let d = 1; d <= days; d++) {
+    const cell = document.createElement('div'); cell.className = 'cell';
+    const day = document.createElement('div');
+    const info = data[d];
+    let cls = 'day';
+    if (d === today) cls += ' today';
+    else if (!info) cls += ' none';
+    day.className = cls;
+    if (info && d !== today) { day.style.setProperty('--c', info[0]); day.style.setProperty('--p', info[1]); }
+    if (d === today && info) { day.style.setProperty('--c', info[0]); day.style.setProperty('--p', info[1]); }
+    const inner = document.createElement('div'); inner.className = 'inner'; inner.textContent = d;
+    day.appendChild(inner); cell.appendChild(day); grid.appendChild(cell);
+  }
+</script>
+</body>
+</html>

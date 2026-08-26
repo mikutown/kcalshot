@@ -8,6 +8,7 @@ struct InsightsView: View {
     @Query(sort: \WeightEntry.date) private var weights: [WeightEntry]
 
     @State private var range: Range = .week
+    @State private var weightRange: WeightRange = .month
     @State private var healthWeights: [WeightPoint] = []
 
     private var mergedWeights: [WeightPoint] {
@@ -19,6 +20,13 @@ struct InsightsView: View {
         var id: String { rawValue }
         var days: Int { self == .week ? 7 : 30 }
         var title: String { self == .week ? String(localized: "近 7 天") : String(localized: "近 30 天") }
+    }
+
+    private enum WeightRange: String, CaseIterable, Identifiable {
+        case month, quarter, year
+        var id: String { rawValue }
+        var days: Int { self == .month ? 30 : (self == .quarter ? 90 : 365) }
+        var title: String { self == .month ? "30天" : (self == .quarter ? "3月" : "1年") }
     }
 
     private struct DayIntake: Identifiable {
@@ -60,7 +68,6 @@ struct InsightsView: View {
     private var streak: Int {
         let cal = CalendarMath.calendar
         var day = cal.startOfDay(for: Date())
-        // 今天还没记录时，从昨天开始数，不打断连胜。
         if DayStatus(intake: intakeByDay[day] ?? 0, target: target) == .none {
             guard let yesterday = cal.date(byAdding: .day, value: -1, to: day) else { return 0 }
             day = yesterday
@@ -72,6 +79,18 @@ struct InsightsView: View {
             day = prev
         }
         return count
+    }
+
+    /// 体重区间内的点。
+    private var rangedWeights: [WeightPoint] {
+        let cal = CalendarMath.calendar
+        guard let cutoff = cal.date(byAdding: .day, value: -weightRange.days, to: Date()) else { return mergedWeights }
+        return mergedWeights.filter { $0.date >= cutoff }
+    }
+
+    private var weightDelta: Double? {
+        guard let first = rangedWeights.first?.weightKg, let last = rangedWeights.last?.weightKg else { return nil }
+        return last - first
     }
 
     var body: some View {
@@ -87,7 +106,8 @@ struct InsightsView: View {
                     content
                 }
             }
-            .navigationTitle("统计")
+            .background(Color.appBackground)
+            .toolbar(.hidden, for: .navigationBar)
             .task {
                 healthWeights = await HealthKitManager.bodyMassSamples()
             }
@@ -95,65 +115,107 @@ struct InsightsView: View {
     }
 
     private var content: some View {
-        List {
-            Section {
-                Picker("区间", selection: $range) {
-                    ForEach(Range.allCases) { Text($0.title).tag($0) }
-                }
-                .pickerStyle(.segmented)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets())
-            }
+        ScrollView {
+            VStack(spacing: 16) {
+                header
 
-            Section {
-                statsRow
-            }
+                pillSegment(Range.allCases, title: { $0.title }, selection: $range, fill: true)
 
-            Section("摄入趋势") {
-                intakeChart
-            }
+                statTiles
 
-            if mergedWeights.count >= 2 {
-                Section("体重趋势") {
-                    weightChart
-                }
-            }
-
-            if target <= 0 {
-                Section {
+                if target <= 0 {
                     Text("设置每日目标后，方可统计达标天数与连续达标。")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(.footnote)
+                        .foregroundStyle(Color.inkTertiary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
+                intakeSection
+
+                if mergedWeights.count >= 2 {
+                    weightSection
                 }
             }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
+        }
+        .background(Color.appBackground)
+    }
+
+    // MARK: - 顶部
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("看看你的趋势")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.inkSecondary)
+            Text("统计")
+                .font(.system(size: 26, weight: .heavy))
+                .foregroundStyle(Color.inkPrimary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 8)
+    }
+
+    // MARK: - 数据卡
+
+    private var statTiles: some View {
+        HStack(spacing: 10) {
+            statTile("平均摄入", "\(Int(averageIntake.rounded()))", "kcal",
+                     tint: .brandGreen, labelColor: .brandGreenDeep)
+            statTile("达标天数", "\(onTargetDays)", "/ \(recordedDays) 天",
+                     tint: .brandOrange, labelColor: Color(red: 180.0/255, green: 118.0/255, blue: 0))
+            statTile("连续达标", "\(streak)", "天",
+                     tint: .brandCoral, labelColor: Color(red: 214.0/255, green: 74.0/255, blue: 42.0/255))
         }
     }
 
-    private var statsRow: some View {
-        HStack(spacing: 12) {
-            statTile("平均摄入", "\(Int(averageIntake.rounded()))", "kcal")
-            statTile("达标天数", "\(onTargetDays)", "/ \(recordedDays) 天")
-            statTile("连续达标", "\(streak)", "天")
-        }
-    }
-
-    private func statTile(_ title: LocalizedStringKey, _ value: String, _ unit: LocalizedStringKey) -> some View {
-        VStack(spacing: 4) {
-            Text(title).font(.caption).foregroundStyle(.secondary)
-            Text(value).font(.title2.weight(.bold))
-            Text(unit).font(.caption2).foregroundStyle(.secondary)
+    private func statTile(_ title: String, _ value: String, _ unit: String, tint: Color, labelColor: Color) -> some View {
+        VStack(spacing: 3) {
+            Text(title)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(labelColor)
+                .lineLimit(1)
+            Text(value)
+                .font(.system(size: 26, weight: .heavy))
+                .monospacedDigit()
+                .foregroundStyle(Color.inkPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+            Text(unit)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Color.inkTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity)
+        .padding(.vertical, 14)
+        .padding(.horizontal, 8)
+        .background(tint.opacity(0.11), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+    }
+
+    // MARK: - 摄入趋势
+
+    private var intakeSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            sectionHeader("摄入趋势", trailing: target > 0 ? "目标 \(Int(target.rounded())) kcal" : nil)
+            VStack(spacing: 12) {
+                intakeChart
+                intakeLegend
+            }
+            .cardStyle()
+        }
     }
 
     private var intakeChart: some View {
         Chart {
             if target > 0 {
                 RuleMark(y: .value("目标", target))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [4, 3]))
-                    .foregroundStyle(.secondary)
+                    .lineStyle(StrokeStyle(lineWidth: 1.2, dash: [4, 3]))
+                    .foregroundStyle(Color.inkTertiary)
                     .annotation(position: .top, alignment: .trailing) {
                         Text("目标 \(Int(target.rounded()))")
-                            .font(.caption2).foregroundStyle(.secondary)
+                            .font(.caption2).foregroundStyle(Color.inkTertiary)
                     }
             }
             ForEach(series) { day in
@@ -162,32 +224,168 @@ struct InsightsView: View {
                     y: .value("摄入", day.intake)
                 )
                 .foregroundStyle(barColor(for: day))
+                .cornerRadius(6)
             }
         }
-        .frame(height: 220)
-        .padding(.vertical, 4)
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: range == .week ? 7 : 6)) {
+                AxisValueLabel(format: .dateTime.month(.defaultDigits).day())
+                    .font(.caption2)
+                    .foregroundStyle(Color.inkTertiary)
+            }
+        }
+        .chartYAxis {
+            AxisMarks { AxisValueLabel().font(.caption2).foregroundStyle(Color.inkTertiary) }
+        }
+        .frame(height: 210)
     }
 
     private func barColor(for day: DayIntake) -> Color {
-        let status = DayStatus(intake: day.intake, target: target)
-        return status == .none ? Color(.systemGray4) : status.color
+        switch DayStatus(intake: day.intake, target: target) {
+        case .onTarget: return .brandGreen
+        case .over: return .brandCoral
+        case .under: return .brandOrange
+        case .none: return Color.hairline
+        }
+    }
+
+    private var intakeLegend: some View {
+        HStack(spacing: 16) {
+            legendItem(.brandGreen, "达标")
+            legendItem(.brandOrange, "偏低")
+            legendItem(.brandCoral, "超标")
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private func legendItem(_ color: Color, _ label: String) -> some View {
+        HStack(spacing: 6) {
+            RoundedRectangle(cornerRadius: 3).fill(color).frame(width: 10, height: 10)
+            Text(label).font(.caption).foregroundStyle(Color.inkSecondary)
+        }
+    }
+
+    // MARK: - 体重趋势
+
+    private var weightSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("体重趋势")
+                    .font(.headline)
+                    .foregroundStyle(Color.inkPrimary)
+                Spacer()
+                pillSegment(WeightRange.allCases, title: { $0.title }, selection: $weightRange, fill: false, size: 12)
+            }
+            .padding(.horizontal, 4)
+
+            VStack(alignment: .leading, spacing: 8) {
+                weightHeadline
+                if rangedWeights.count >= 2 {
+                    weightChart
+                } else {
+                    Text("该区间体重数据不足")
+                        .font(.footnote)
+                        .foregroundStyle(Color.inkTertiary)
+                        .frame(maxWidth: .infinity, minHeight: 120)
+                }
+            }
+            .cardStyle()
+        }
+    }
+
+    private var weightHeadline: some View {
+        HStack(alignment: .firstTextBaseline, spacing: 10) {
+            if let now = rangedWeights.last?.weightKg {
+                (Text("\(now, specifier: "%.1f") ").font(.system(size: 26, weight: .heavy)).monospacedDigit()
+                 + Text("kg").font(.subheadline.weight(.bold)).foregroundStyle(Color.inkTertiary))
+                    .foregroundStyle(Color.inkPrimary)
+            }
+            if let delta = weightDelta, abs(delta) >= 0.05 {
+                let down = delta < 0
+                Text("\(down ? "↓" : "↑") \(abs(delta), specifier: "%.1f") kg")
+                    .font(.subheadline.weight(.bold))
+                    .monospacedDigit()
+                    .foregroundStyle(down ? Color.brandGreenDeep : Color.brandCoral)
+            }
+        }
     }
 
     private var weightChart: some View {
-        Chart(mergedWeights) { point in
+        Chart(rangedWeights) { point in
+            AreaMark(
+                x: .value("日期", point.date),
+                y: .value("体重", point.weightKg)
+            )
+            .interpolationMethod(.monotone)
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [Color.brandGreen.opacity(0.22), Color.brandGreen.opacity(0)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
             LineMark(
                 x: .value("日期", point.date),
                 y: .value("体重", point.weightKg)
             )
             .interpolationMethod(.monotone)
-            PointMark(
-                x: .value("日期", point.date),
-                y: .value("体重", point.weightKg)
-            )
+            .foregroundStyle(Color.brandGreen)
+            .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
         }
         .chartYScale(domain: .automatic(includesZero: false))
+        .chartXAxis {
+            AxisMarks(values: .automatic(desiredCount: 5)) {
+                AxisValueLabel(format: .dateTime.month(.defaultDigits).day())
+                    .font(.caption2)
+                    .foregroundStyle(Color.inkTertiary)
+            }
+        }
+        .chartYAxis {
+            AxisMarks { AxisValueLabel().font(.caption2).foregroundStyle(Color.inkTertiary) }
+        }
         .frame(height: 160)
-        .padding(.vertical, 4)
+    }
+
+    // MARK: - 复用组件
+
+    private func sectionHeader(_ title: String, trailing: String? = nil) -> some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).font(.headline).foregroundStyle(Color.inkPrimary)
+            Spacer()
+            if let trailing {
+                Text(trailing).font(.subheadline.weight(.semibold)).foregroundStyle(Color.inkTertiary)
+            }
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private func pillSegment<T: Hashable>(
+        _ options: [T],
+        title: @escaping (T) -> String,
+        selection: Binding<T>,
+        fill: Bool,
+        size: CGFloat = 14
+    ) -> some View {
+        HStack(spacing: 4) {
+            ForEach(options, id: \.self) { option in
+                let isOn = selection.wrappedValue == option
+                Text(title(option))
+                    .font(.system(size: size, weight: .bold))
+                    .foregroundStyle(isOn ? .white : Color.inkSecondary)
+                    .frame(maxWidth: fill ? .infinity : nil)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, fill ? 0 : 12)
+                    .background {
+                        if isOn {
+                            Capsule().fill(Color.brandGreen)
+                                .shadow(color: Color.brandGreen.opacity(0.32), radius: 5, y: 2)
+                        }
+                    }
+                    .contentShape(Capsule())
+                    .onTapGesture { withAnimation(.snappy) { selection.wrappedValue = option } }
+            }
+        }
+        .padding(4)
+        .background(Color.black.opacity(0.05), in: Capsule())
     }
 }
 

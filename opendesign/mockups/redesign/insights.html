@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>KcalShot · 统计</title>
+<link rel="stylesheet" href="../../design-systems/kcalshot/colors_and_type.css" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font);
+    background:
+      radial-gradient(1200px 600px at 50% -200px, #EAF6EE 0%, transparent 60%),
+      var(--bg);
+    color: var(--ink);
+    display: flex; justify-content: center; padding: 40px 0 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num { font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+
+  .phone { width: 393px; min-height: 852px; display: flex; flex-direction: column; }
+
+  .status {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 26px 6px; font-size: 14px; font-weight: 700;
+  }
+  .status .dots { display: flex; gap: 5px; align-items: center; }
+  .status svg { width: 17px; height: 17px; }
+
+  .header { padding: 10px 22px 16px; }
+  .header .hi { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+  .header .date { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+
+  .scroll { padding: 0 18px; display: flex; flex-direction: column; gap: 16px; }
+  .card {
+    background: var(--card); border-radius: var(--r-card);
+    box-shadow: var(--shadow-card); padding: 20px;
+  }
+
+  /* range toggle */
+  .seg {
+    display: flex; background: rgba(20,24,26,0.05); border-radius: var(--r-pill);
+    padding: 4px; gap: 4px;
+  }
+  .seg button {
+    flex: 1; border: none; background: transparent; cursor: pointer;
+    font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--ink-2);
+    padding: 9px 0; border-radius: var(--r-pill);
+  }
+  .seg button.on { background: var(--green); color: #fff; box-shadow: 0 3px 10px rgba(34,197,94,0.35); }
+
+  /* stat tiles */
+  .stats { display: flex; gap: 10px; }
+  .stat { flex: 1; border-radius: var(--r-tile); padding: 14px 12px 15px; text-align: center; }
+  .stat .lbl { font-size: 12px; font-weight: 700; }
+  .stat .big { font-size: 27px; font-weight: 800; line-height: 1.05; margin: 6px 0 2px; }
+  .stat .unit { font-size: 11px; font-weight: 600; color: var(--ink-3); }
+  .s-green { background: rgba(34,197,94,0.10); }  .s-green .lbl { color: var(--green-deep); }
+  .s-orange { background: rgba(255,176,32,0.12); } .s-orange .lbl { color: #B47600; }
+  .s-coral { background: rgba(255,107,74,0.10); }  .s-coral .lbl { color: #D64A2A; }
+
+  /* section header */
+  .sh { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 6px 0; margin-bottom: -6px; }
+  .sh.tight { align-items: center; }
+  .sh .t { font-size: 17px; font-weight: 800; }
+  .seg-mini { display: flex; background: rgba(20,24,26,0.05); border-radius: var(--r-pill); padding: 3px; gap: 3px; }
+  .seg-mini button {
+    border: none; background: transparent; cursor: pointer;
+    font-family: var(--font); font-size: 12px; font-weight: 700; color: var(--ink-2);
+    padding: 5px 11px; border-radius: var(--r-pill);
+  }
+  .seg-mini button.on { background: var(--green); color: #fff; box-shadow: 0 2px 7px rgba(34,197,94,0.32); }
+  .sh .meta { font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .sh .meta b { color: var(--green-deep); }
+
+  .chart { width: 100%; display: block; }
+  .legend { display: flex; gap: 16px; justify-content: center; margin-top: 6px; }
+  .legend span { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-2); font-weight: 600; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  .wtop { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .wtop .now { font-size: 26px; font-weight: 800; }
+  .wtop .now small { font-size: 13px; color: var(--ink-3); font-weight: 600; }
+  .wtop .delta { font-size: 13px; font-weight: 700; color: var(--green-deep); }
+
+  /* tab bar */
+  .tabbar {
+    position: sticky; bottom: 0; margin-top: 22px;
+    background: rgba(255,255,255,0.86); backdrop-filter: blur(18px);
+    border-top: 1px solid var(--line);
+    display: flex; align-items: flex-end; justify-content: space-around;
+    padding: 10px 18px 26px; height: 86px;
+  }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink-3); }
+  .tab.on { color: var(--green-deep); }
+  .tab svg { width: 24px; height: 24px; }
+  .tab span { font-size: 10px; font-weight: 600; }
+  .fab {
+    width: 60px; height: 60px; border-radius: 22px; border: none; cursor: pointer;
+    background: linear-gradient(140deg, var(--coral), var(--orange));
+    color: #fff; box-shadow: var(--shadow-fab);
+    display: grid; place-items: center; transform: translateY(-16px);
+    transition: transform .12s ease, filter .12s ease;
+  }
+  .fab svg { width: 28px; height: 28px; }
+  .fab:active { transform: translateY(-16px) scale(0.94); }
+
+  .caption { text-align: center; color: var(--ink-3); font-size: 12px; margin-top: 24px; }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="status num">
+    <span>9:41</span>
+    <span class="dots">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 17h3v4H2zM7 13h3v8H7zM12 9h3v12h-3zM17 5h3v16h-3z"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.5a11 11 0 0 1 14 0"/><path d="M8.5 15.5a6 6 0 0 1 7 0"/><circle cx="12" cy="18.5" r="1" fill="currentColor"/></svg>
+      <svg viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="7" width="18" height="10" rx="3"/><rect x="21" y="10" width="1.5" height="4" rx="1"/></svg>
+    </span>
+  </div>
+
+  <div class="header">
+    <div class="hi">看看你的趋势</div>
+    <div class="date">统计</div>
+  </div>
+
+  <div class="scroll">
+
+    <!-- range -->
+    <div class="seg">
+      <button class="on">近 7 天</button>
+      <button>近 30 天</button>
+    </div>
+
+    <!-- stat tiles -->
+    <div class="stats">
+      <div class="stat s-green">
+        <div class="lbl">平均摄入</div>
+        <div class="big num">1,780</div>
+        <div class="unit">kcal</div>
+      </div>
+      <div class="stat s-orange">
+        <div class="lbl">达标天数</div>
+        <div class="big num">4</div>
+        <div class="unit">/ 6 天</div>
+      </div>
+      <div class="stat s-coral">
+        <div class="lbl">连续达标</div>
+        <div class="big num">2</div>
+        <div class="unit">天</div>
+      </div>
+    </div>
+
+    <!-- intake chart -->
+    <div class="sh"><div class="t">摄入趋势</div><div class="meta">目标 <b>1,800</b> kcal</div></div>
+    <div class="card">
+      <svg class="chart" viewBox="0 0 320 210" role="img" aria-label="每日摄入柱状图">
+        <!-- target line at 1800 (scale max 2200, top=20 base=180 -> y=49) -->
+        <line x1="14" y1="49" x2="306" y2="49" stroke="var(--ink-3)" stroke-width="1.4" stroke-dasharray="4 4" opacity="0.6"/>
+        <text x="306" y="44" text-anchor="end" font-family="Sora" font-size="10" font-weight="600" fill="var(--ink-3)">目标 1800</text>
+
+        <!-- bars -->
+        <rect x="22.9" y="52"   width="24" height="128"   rx="7" fill="var(--green)"/>
+        <rect x="64.6" y="40.4" width="24" height="139.6" rx="7" fill="var(--orange)"/>
+        <rect x="106.3" y="60"  width="24" height="120"   rx="7" fill="var(--green)"/>
+        <rect x="148" y="172"   width="24" height="8"     rx="4" fill="var(--line)"/>
+        <rect x="189.7" y="48.4" width="24" height="131.6" rx="7" fill="var(--green)"/>
+        <rect x="231.4" y="33.1" width="24" height="146.9" rx="7" fill="var(--orange)"/>
+        <rect x="273.1" y="139.3" width="24" height="40.7" rx="7" fill="var(--green)" opacity="0.45"/>
+
+        <!-- x labels -->
+        <g font-family="Sora" font-size="11" font-weight="600" fill="var(--ink-3)" text-anchor="middle">
+          <text x="34.9" y="200">19</text>
+          <text x="76.6" y="200">20</text>
+          <text x="118.3" y="200">21</text>
+          <text x="160" y="200">22</text>
+          <text x="201.7" y="200">23</text>
+          <text x="243.4" y="200">24</text>
+          <text x="285.1" y="200" fill="var(--green-deep)" font-weight="700">今</text>
+        </g>
+      </svg>
+      <div class="legend">
+        <span><i style="background:var(--green)"></i>达标</span>
+        <span><i style="background:var(--orange)"></i>超标</span>
+        <span><i style="background:var(--line)"></i>未记录</span>
+      </div>
+    </div>
+
+    <!-- weight chart -->
+    <div class="sh tight">
+      <div class="t">体重趋势</div>
+      <div class="seg-mini">
+        <button class="on">30天</button>
+        <button>3月</button>
+        <button>1年</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="wtop">
+        <span class="now num">68.1 <small>kg</small></span>
+        <span class="delta num">↓ 1.1 kg</span>
+      </div>
+      <svg class="chart" viewBox="0 0 320 168" role="img" aria-label="体重曲线">
+        <defs>
+          <linearGradient id="warea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--green)" stop-opacity="0.22"/>
+            <stop offset="1" stop-color="var(--green)" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <!-- faint gridlines -->
+        <g stroke="var(--line)" stroke-width="1">
+          <line x1="14" y1="40" x2="306" y2="40"/>
+          <line x1="14" y1="80" x2="306" y2="80"/>
+          <line x1="14" y1="120" x2="306" y2="120"/>
+        </g>
+        <!-- area -->
+        <path d="M20,50 L65,62 L110,58 L155,72 L200,80 L245,92 L300,96 L300,130 L20,130 Z" fill="url(#warea)"/>
+        <!-- line -->
+        <path d="M20,50 L65,62 L110,58 L155,72 L200,80 L245,92 L300,96" fill="none"
+              stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- points -->
+        <g fill="#fff" stroke="var(--green)" stroke-width="2.5">
+          <circle cx="20" cy="50" r="3.4"/>
+          <circle cx="110" cy="58" r="3.4"/>
+          <circle cx="200" cy="80" r="3.4"/>
+        </g>
+        <circle cx="300" cy="96" r="4.6" fill="var(--green)" stroke="#fff" stroke-width="2.5"/>
+        <!-- y labels -->
+        <g font-family="Sora" font-size="10" font-weight="600" fill="var(--ink-3)">
+          <text x="16" y="37">69.5</text>
+          <text x="16" y="117">67.5</text>
+        </g>
+        <!-- x date labels -->
+        <g font-family="Sora" font-size="10" font-weight="600" fill="var(--ink-3)" text-anchor="middle">
+          <text x="20" y="150">7/26</text>
+          <text x="90" y="150">8/4</text>
+          <text x="160" y="150">8/11</text>
+          <text x="230" y="150">8/18</text>
+          <text x="300" y="150" fill="var(--green-deep)" font-weight="700">今</text>
+        </g>
+      </svg>
+    </div>
+
+  </div>
+
+  <!-- tab bar -->
+  <div class="tabbar">
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.2"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.4 1.4M17.6 17.6 19 19M19 5l-1.4 1.4M6.4 17.6 5 19"/></g></svg>
+      <span>今天</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4.5" width="18" height="17" rx="3"/><path d="M3 9h18M8 2.5v4M16 2.5v4" stroke-linecap="round"/></svg>
+      <span>记录</span>
+    </div>
+    <button class="fab" title="添加记录（长按：常吃/收藏）">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <div class="tab on">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>统计</span>
+    </div>
+    <div class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 4.6 13H4.5a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 11 4.6V4.5a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 19.4 11h.1a2 2 0 1 1 0 4z"/></svg>
+      <span>设置</span>
+    </div>
+  </div>
+
+</div>
+
+<div class="caption">KcalShot · 统计屏 · 区间切换 + 撞色数据卡 + 摄入柱状 + 体重曲线</div>
+</body>
+</html>

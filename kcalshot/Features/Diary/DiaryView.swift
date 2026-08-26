@@ -43,9 +43,9 @@ enum DayStatus {
     var color: Color {
         switch self {
         case .none: return .clear
-        case .under: return .yellow
-        case .onTarget: return .green
-        case .over: return .red
+        case .under: return .brandOrange
+        case .onTarget: return .brandGreen
+        case .over: return .brandCoral
         }
     }
 }
@@ -80,48 +80,87 @@ struct DiaryView: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 12) {
-                Text(Self.monthTitle.string(from: selectedMonth))
-                    .font(.title3.weight(.semibold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal)
+            ScrollView {
+                VStack(spacing: 16) {
+                    header
 
-                weekdayHeader
-
-                TabView(selection: $selectedMonth) {
-                    ForEach(months, id: \.self) { month in
-                        monthGrid(month).tag(month)
+                    VStack(spacing: 14) {
+                        monthNav
+                        weekdayHeader
+                        monthGrid(selectedMonth)
                     }
-                }
-                .tabViewStyle(.page(indexDisplayMode: .never))
-                .frame(height: 380)
+                    .cardStyle(padding: 16)
 
-                legend
-                Spacer(minLength: 0)
+                    legend
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 24)
             }
-            .padding(.top, 8)
-            .navigationTitle("记录")
+            .background(Color.appBackground)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(item: $selectedDay) { day in
                 DayDetailView(date: day)
             }
         }
     }
 
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text("月度摄入达标一览")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(Color.inkSecondary)
+            Text("记录")
+                .font(.system(size: 26, weight: .heavy))
+                .foregroundStyle(Color.inkPrimary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 8)
+    }
+
+    private var monthNav: some View {
+        HStack {
+            navButton("chevron.left") { shiftMonth(-1) }
+            Spacer()
+            Text(Self.monthTitle.string(from: selectedMonth))
+                .font(.title3.weight(.heavy))
+                .foregroundStyle(Color.inkPrimary)
+            Spacer()
+            navButton("chevron.right") { shiftMonth(1) }
+        }
+    }
+
+    private func navButton(_ system: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: system)
+                .font(.system(size: 15, weight: .bold))
+                .foregroundStyle(Color.inkPrimary)
+                .frame(width: 34, height: 34)
+                .background(Color.black.opacity(0.05), in: Circle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func shiftMonth(_ delta: Int) {
+        guard let next = CalendarMath.calendar.date(byAdding: .month, value: delta, to: selectedMonth),
+              let first = months.first, let last = months.last,
+              next >= first, next <= last else { return }
+        withAnimation(.snappy) { selectedMonth = next }
+    }
+
     private var weekdayHeader: some View {
         HStack {
             ForEach(["日", "一", "二", "三", "四", "五", "六"], id: \.self) { day in
                 Text(LocalizedStringKey(day))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color.inkTertiary)
                     .frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal)
     }
 
     private func monthGrid(_ month: Date) -> some View {
         let columns = Array(repeating: GridItem(.flexible()), count: 7)
-        return LazyVGrid(columns: columns, spacing: 14) {
+        return LazyVGrid(columns: columns, spacing: 12) {
             ForEach(Array(CalendarMath.cells(of: month).enumerated()), id: \.offset) { _, date in
                 if let date {
                     DayCell(
@@ -130,26 +169,28 @@ struct DiaryView: View {
                         target: target
                     ) { selectedDay = date }
                 } else {
-                    Color.clear.frame(height: 1)
+                    Color.clear.frame(height: 40)
                 }
             }
         }
-        .padding(.horizontal)
     }
 
     private var legend: some View {
         HStack(spacing: 16) {
-            legendItem(.over, "超出")
             legendItem(.onTarget, "适中")
             legendItem(.under, "不足")
+            legendItem(.over, "超出")
+            legendItem(.none, "未记录")
         }
-        .font(.caption)
-        .foregroundStyle(.secondary)
+        .font(.caption.weight(.medium))
+        .foregroundStyle(Color.inkSecondary)
     }
 
     private func legendItem(_ status: DayStatus, _ label: LocalizedStringKey) -> some View {
-        HStack(spacing: 4) {
-            Circle().fill(status.color).frame(width: 7, height: 7)
+        HStack(spacing: 5) {
+            Circle()
+                .fill(status == .none ? Color.hairline : status.color)
+                .frame(width: 9, height: 9)
             Text(label)
         }
     }
@@ -175,28 +216,30 @@ private struct DayCell: View {
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 5) {
-                ZStack {
-                    Circle().stroke(Color(.systemGray5), lineWidth: 3)
-                    if status != .none {
-                        Circle()
-                            .trim(from: 0, to: fill)
-                            .stroke(status.color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                            .rotationEffect(.degrees(-90))
-                    }
-                    Text("\(dayNumber)")
-                        .font(.callout)
-                        .fontWeight(isToday ? .bold : .regular)
-                        .foregroundStyle(isToday ? Color.accentColor : .primary)
+            ZStack {
+                Circle().stroke(Color.hairline, lineWidth: 3)
+                if status != .none {
+                    Circle()
+                        .trim(from: 0, to: fill)
+                        .stroke(status.color, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                        .rotationEffect(.degrees(-90))
                 }
-                .frame(width: 40, height: 40)
-
-                Circle()
-                    .fill(status.color)
-                    .frame(width: 6, height: 6)
+                if isToday {
+                    Circle().fill(Color.brandGreen).frame(width: 28, height: 28)
+                }
+                Text("\(dayNumber)")
+                    .font(.system(size: 14, weight: isToday ? .bold : .semibold))
+                    .foregroundStyle(dayNumberColor)
             }
+            .frame(width: 40, height: 40)
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
+    }
+
+    private var dayNumberColor: Color {
+        if isToday { return .white }
+        return status == .none ? Color.inkTertiary : Color.inkPrimary
     }
 }
 
