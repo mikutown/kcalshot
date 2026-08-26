@@ -31,9 +31,12 @@ struct WaterLogView: View {
                         ForEach(group.entries) { entry in
                             HStack {
                                 Text(entry.date, format: .dateTime.hour().minute())
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(Color.inkTertiary)
                                 Spacer()
-                                Text("\(Int(entry.amountML.rounded())) mL").fontWeight(.medium)
+                                Text("\(Int(entry.amountML.rounded())) mL")
+                                    .font(.subheadline.weight(.bold))
+                                    .monospacedDigit()
+                                    .foregroundStyle(Color.inkPrimary)
                             }
                             .swipeActions {
                                 Button(role: .destructive) {
@@ -46,13 +49,22 @@ struct WaterLogView: View {
                     } header: {
                         HStack {
                             Text(group.day, format: .dateTime.year().month().day())
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.inkPrimary)
                             Spacer()
                             Text("\(Int(group.total.rounded())) mL")
+                                .font(.subheadline.weight(.bold))
+                                .monospacedDigit()
+                                .foregroundStyle(Color.waterBlue)
                         }
+                        .textCase(nil)
                     }
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("饮水记录")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

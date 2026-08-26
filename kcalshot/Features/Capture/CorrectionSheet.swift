@@ -19,21 +19,25 @@ struct CorrectionSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     Text("请说明照片中识别有误之处，将携带原图重新识别。")
-                        .font(.subheadline).foregroundStyle(.secondary)
+                        .font(.subheadline).foregroundStyle(Color.inkSecondary)
                     TextField("例如：饮品是牛奶不是豆浆", text: $correction, axis: .vertical)
+                        .font(.subheadline)
                         .lineLimit(3...10)
                         .focused($focused)
-                        .padding(12)
-                        .background(Color(.secondarySystemBackground), in: RoundedRectangle(cornerRadius: 12))
+                        .padding(14)
+                        .background(Color.cardSurface, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(Color.hairline, lineWidth: 1))
                     if speech.isRecording {
                         Label("正在聆听…", systemImage: "waveform")
-                            .font(.caption).foregroundStyle(.red)
+                            .font(.caption.weight(.semibold)).foregroundStyle(Color.brandCoral)
                     }
                 }
                 .padding()
             }
+            .background(Color.appBackground)
             .navigationTitle("补充说明")
             .navigationBarTitleDisplayMode(.inline)
+            .tint(.brandGreen)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("取消") { speech.stop(); dismiss() }
@@ -49,7 +53,7 @@ struct CorrectionSheet: View {
                     } label: {
                         Label(speech.isRecording ? "停止" : "口述",
                               systemImage: speech.isRecording ? "stop.circle.fill" : "mic.fill")
-                            .foregroundStyle(speech.isRecording ? .red : Color.accentColor)
+                            .foregroundStyle(speech.isRecording ? Color.brandCoral : Color.brandGreenDeep)
                     }
                 }
             }
@@ -59,10 +63,22 @@ struct CorrectionSheet: View {
                     onConfirm()
                     dismiss()
                 } label: {
-                    Text("按补充说明重新识别").frame(maxWidth: .infinity)
+                    HStack(spacing: 8) {
+                        Image(systemName: "sparkles")
+                        Text("按补充说明重新识别").font(.headline)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                    .background(
+                        LinearGradient(colors: [.brandGreen, .brandGreenDeep], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    )
+                    .foregroundStyle(.white)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.plain)
                 .disabled(isEmpty)
+                .opacity(isEmpty ? 0.5 : 1)
+                .shadow(color: Color.brandGreen.opacity(isEmpty ? 0 : 0.3), radius: 8, x: 0, y: 4)
                 .padding()
                 .background(.bar)
             }

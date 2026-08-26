@@ -32,17 +32,21 @@ struct WeightLogView: View {
             } else {
                 Section("历史") {
                     ForEach(merged.reversed()) { point in
-                        HStack {
+                        HStack(spacing: 8) {
                             Text(point.date, format: .dateTime.year().month().day())
+                                .foregroundStyle(Color.inkPrimary)
                             if !point.isLocal {
                                 Text("健康")
-                                    .font(.caption2)
-                                    .padding(.horizontal, 5).padding(.vertical, 1)
-                                    .background(.tint.opacity(0.15), in: Capsule())
-                                    .foregroundStyle(.tint)
+                                    .font(.caption2.weight(.semibold))
+                                    .padding(.horizontal, 6).padding(.vertical, 2)
+                                    .background(Color.brandGreen.opacity(0.15), in: Capsule())
+                                    .foregroundStyle(Color.brandGreenDeep)
                             }
                             Spacer()
-                            Text(weightText(point.weightKg)).fontWeight(.medium)
+                            Text(weightText(point.weightKg))
+                                .font(.subheadline.weight(.bold))
+                                .monospacedDigit()
+                                .foregroundStyle(Color.inkPrimary)
                         }
                         .swipeActions {
                             if let entry = point.localEntry {
@@ -57,6 +61,9 @@ struct WeightLogView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("体重记录")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -78,15 +85,29 @@ struct WeightLogView: View {
 
     private var chart: some View {
         Chart(merged) { point in
+            AreaMark(
+                x: .value("日期", point.date),
+                y: .value("体重", point.weightKg)
+            )
+            .interpolationMethod(.monotone)
+            .foregroundStyle(
+                LinearGradient(
+                    colors: [Color.brandGreen.opacity(0.22), Color.brandGreen.opacity(0)],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
             LineMark(
                 x: .value("日期", point.date),
                 y: .value("体重", point.weightKg)
             )
             .interpolationMethod(.monotone)
+            .foregroundStyle(Color.brandGreen)
+            .lineStyle(StrokeStyle(lineWidth: 3, lineCap: .round))
             PointMark(
                 x: .value("日期", point.date),
                 y: .value("体重", point.weightKg)
             )
+            .foregroundStyle(Color.brandGreen)
         }
         .chartYScale(domain: .automatic(includesZero: false))
         .frame(height: 200)
@@ -154,6 +175,9 @@ private struct WeightInputSheet: View {
                     Text("kg").foregroundStyle(.secondary)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.appBackground)
+            .tint(.brandGreen)
             .navigationTitle("记录体重")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -165,6 +189,7 @@ private struct WeightInputSheet: View {
                         onSave(date, weight)
                         dismiss()
                     }
+                    .fontWeight(.bold)
                     .disabled(weight <= 0)
                 }
             }

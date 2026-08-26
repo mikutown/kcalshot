@@ -100,7 +100,7 @@ struct QuickAddView: View {
                                         }
                                         Spacer()
                                         Image(systemName: inCart ? "checkmark.circle.fill" : "plus.circle")
-                                            .foregroundStyle(inCart ? .green : Color.accentColor)
+                                            .foregroundStyle(Color.brandGreen)
                                     }
                                 }
                                 .buttonStyle(.plain)
@@ -130,7 +130,7 @@ struct QuickAddView: View {
                                         }
                                         Spacer()
                                         Image(systemName: "plus.circle")
-                                            .foregroundStyle(Color.accentColor)
+                                            .foregroundStyle(Color.brandGreen)
                                     }
                                 }
                                 .buttonStyle(.plain)
@@ -139,27 +139,37 @@ struct QuickAddView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .scrollContentBackground(.hidden)
+                .background(Color.appBackground)
 
                 // ──── 底部保存按钮 ────
                 if !cart.isEmpty {
-                    VStack(spacing: 4) {
-                        HStack {
-                            Text("合计")
+                    VStack(spacing: 10) {
+                        HStack(spacing: 4) {
+                            Text("合计").foregroundStyle(Color.inkSecondary)
                             Text("\(Int(cartTotalCalories.rounded())) kcal")
-                                .fontWeight(.semibold)
+                                .fontWeight(.bold)
+                                .foregroundStyle(Color.inkPrimary)
                             Text("· \(cart.count) 项")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Color.inkTertiary)
                             Spacer()
                         }
                         .font(.subheadline)
-                        .padding(.horizontal)
+                        .padding(.horizontal, 4)
 
                         Button(action: saveAll) {
                             Text("添加 \(cart.count) 项到「\(mealType.displayName)」")
                                 .font(.headline)
                                 .frame(maxWidth: .infinity)
+                                .padding(16)
+                                .background(
+                                    LinearGradient(colors: [.brandGreen, .brandGreenDeep], startPoint: .topLeading, endPoint: .bottomTrailing),
+                                    in: RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                )
+                                .foregroundStyle(.white)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.plain)
+                        .shadow(color: Color.brandGreen.opacity(0.3), radius: 8, x: 0, y: 4)
                     }
                     .padding()
                     .background(.bar)
@@ -167,6 +177,7 @@ struct QuickAddView: View {
             }
             .navigationTitle("快速添加")
             .navigationBarTitleDisplayMode(.inline)
+            .tint(.brandGreen)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("关闭") { dismiss() }

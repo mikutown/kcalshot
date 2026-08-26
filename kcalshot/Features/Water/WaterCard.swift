@@ -105,6 +105,9 @@ struct WaterAmountSheet: View {
                     Text("mL").foregroundStyle(.secondary)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.appBackground)
+            .tint(.brandGreen)
             .navigationTitle("记录饮水")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -116,6 +119,7 @@ struct WaterAmountSheet: View {
                         onSave(amount)
                         dismiss()
                     }
+                    .fontWeight(.bold)
                     .disabled(amount <= 0)
                 }
             }
