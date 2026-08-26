@@ -70,13 +70,22 @@ struct TokenUsageView: View {
                     } header: {
                         HStack {
                             Text(group.day, format: .dateTime.year().month().day())
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.inkPrimary)
                             Spacer()
                             Text("\(group.total)")
+                                .font(.subheadline.weight(.bold))
+                                .monospacedDigit()
+                                .foregroundStyle(Color.brandGreenDeep)
                         }
+                        .textCase(nil)
                     }
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("Token 用量")
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -85,14 +94,17 @@ struct TokenUsageView: View {
         VStack(alignment: .leading, spacing: 3) {
             HStack {
                 Text(record.date, format: .dateTime.hour().minute())
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Color.inkTertiary)
                 Text(record.kind.displayName)
-                    .font(.caption2)
-                    .padding(.horizontal, 5).padding(.vertical, 1)
-                    .background(.tint.opacity(0.15), in: Capsule())
-                    .foregroundStyle(.tint)
+                    .font(.caption2.weight(.semibold))
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Color.brandGreen.opacity(0.15), in: Capsule())
+                    .foregroundStyle(Color.brandGreenDeep)
                 Spacer()
-                Text("\(record.totalTokens)").fontWeight(.medium)
+                Text("\(record.totalTokens)")
+                    .font(.subheadline.weight(.bold))
+                    .monospacedDigit()
+                    .foregroundStyle(Color.inkPrimary)
             }
             // 部分中转站只回总量、不回输入/输出明细，这时省略「输入 0 / 输出 0」以免误导。
             Text(breakdown(record))

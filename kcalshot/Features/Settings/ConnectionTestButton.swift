@@ -52,7 +52,7 @@ struct ConnectionTestButton: View {
                 systemImage: "checkmark.circle.fill"
             )
             .font(.footnote)
-            .foregroundStyle(.green)
+            .foregroundStyle(Color.brandGreenDeep)
         case .failure(let message):
             Label(message, systemImage: "xmark.circle.fill")
                 .font(.footnote)

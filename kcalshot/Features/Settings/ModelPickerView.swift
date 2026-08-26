@@ -23,6 +23,8 @@ struct ModelPickerView: View {
     var body: some View {
         NavigationStack {
             content
+                .background(Color.appBackground)
+                .tint(.brandGreen)
                 .navigationTitle("选择模型")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -72,6 +74,8 @@ struct ModelPickerView: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color.appBackground)
             .searchable(text: $search, prompt: "搜索 Model ID")
         }
     }

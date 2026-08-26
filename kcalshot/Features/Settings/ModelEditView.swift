@@ -47,10 +47,13 @@ struct ModelEditView: View {
             } footer: {
                 if !model.supportsVision {
                     Text("此模型标记为不支持视觉，无法用于拍照识别。")
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color(red: 180.0/255, green: 118.0/255, blue: 0))
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("编辑模型")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {

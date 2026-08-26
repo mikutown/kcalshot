@@ -57,6 +57,9 @@ struct DataExportView: View {
                 Text("备份包含全部三餐、目标、体重、饮水与常吃收藏，可用于换机或防丢。含缩略图时文件更大。")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("数据导出")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: "\(includeThumbnails)-\(contentFingerprint)") { await regenerateBackup() }

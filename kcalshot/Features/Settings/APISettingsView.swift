@@ -26,6 +26,9 @@ struct APISettingsView: View {
                 }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("API 设置")
         .navigationBarTitleDisplayMode(.inline)
     }

@@ -29,6 +29,9 @@ private struct GoalForm: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showActivityHelp = false
 
+    private let orangeDark = Color(red: 180.0/255, green: 118.0/255, blue: 0)
+    private let coralDark = Color(red: 214.0/255, green: 74.0/255, blue: 42.0/255)
+
     private var bodyKey: String {
         "\(goal.sexRaw)-\(goal.age)-\(goal.heightCm)-\(goal.weightKg)-\(goal.activityRaw)-\(goal.calorieDelta)"
     }
@@ -58,6 +61,7 @@ private struct GoalForm: View {
                         Image(systemName: "questionmark.circle")
                     }
                     .buttonStyle(.borderless)
+                    .tint(Color.inkTertiary)
                 }
             }
 
@@ -82,13 +86,34 @@ private struct GoalForm: View {
             }
 
             Section("目标结果") {
-                LabeledContent("维持热量 TDEE", value: "\(Int(goal.tdee.rounded())) kcal")
-                LabeledContent("每日目标热量", value: "\(Int(goal.targetCalories.rounded())) kcal")
-                LabeledContent("蛋白质", value: "\(Int(goal.protein.rounded())) g")
-                LabeledContent("脂肪", value: "\(Int(goal.fat.rounded())) g")
-                LabeledContent("碳水", value: "\(Int(goal.carbs.rounded())) g")
+                VStack(spacing: 14) {
+                    HStack(alignment: .firstTextBaseline) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("每日目标热量")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(Color.inkSecondary)
+                            Text("维持热量 TDEE \(Int(goal.tdee.rounded())) kcal")
+                                .font(.caption)
+                                .foregroundStyle(Color.inkTertiary)
+                        }
+                        Spacer()
+                        (Text("\(Int(goal.targetCalories.rounded()))")
+                            .font(.system(size: 28, weight: .bold)).monospacedDigit()
+                         + Text(" kcal").font(.subheadline).foregroundStyle(Color.inkTertiary))
+                            .foregroundStyle(Color.inkPrimary)
+                    }
+                    HStack(spacing: 10) {
+                        macroChip("蛋白质", goal.protein, tint: .brandGreen, label: .brandGreenDeep)
+                        macroChip("脂肪", goal.fat, tint: .brandCoral, label: coralDark)
+                        macroChip("碳水", goal.carbs, tint: .brandOrange, label: orangeDark)
+                    }
+                }
+                .padding(.vertical, 4)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .onAppear { goal.recompute() }
         .onChange(of: goal.goalType) { _, _ in
             goal.resetDeltaToDefault()
@@ -100,7 +125,7 @@ private struct GoalForm: View {
         .toolbar {
             if showsDone {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
+                    Button("完成") { dismiss() }.fontWeight(.bold)
                 }
             }
         }
@@ -109,6 +134,21 @@ private struct GoalForm: View {
         } message: {
             Text(ActivityLevel.allCases.map { "· \($0.detail)" }.joined(separator: "\n"))
         }
+    }
+
+    private func macroChip(_ name: String, _ value: Double, tint: Color, label: Color) -> some View {
+        VStack(spacing: 2) {
+            Text("\(Int(value.rounded()))g")
+                .font(.system(size: 16, weight: .heavy)).monospacedDigit()
+                .foregroundStyle(Color.inkPrimary)
+                .lineLimit(1).minimumScaleFactor(0.6)
+            Text(name)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(label)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 9)
+        .background(tint.opacity(0.11), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var heightBinding: Binding<Int> {

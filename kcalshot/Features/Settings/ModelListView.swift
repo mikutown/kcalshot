@@ -28,6 +28,9 @@ struct ModelListView: View {
                 .onDelete(perform: delete)
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("模型管理")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -67,17 +70,17 @@ struct ModelListView: View {
                 }
                 if model.isDefault {
                     Text("默认")
-                        .font(.caption2)
-                        .padding(.horizontal, 6)
+                        .font(.caption2.weight(.bold))
+                        .padding(.horizontal, 7)
                         .padding(.vertical, 2)
-                        .background(.tint, in: Capsule())
+                        .background(Color.brandGreen, in: Capsule())
                         .foregroundStyle(.white)
                 }
             }
             HStack(spacing: 6) {
                 Text(model.modelId.isEmpty ? "未设置 Model ID" : model.modelId)
                 if !model.supportsVision {
-                    Text("· 不支持视觉").foregroundStyle(.orange)
+                    Text("· 不支持视觉").foregroundStyle(Color(red: 180.0/255, green: 118.0/255, blue: 0))
                 }
             }
             .font(.caption)

@@ -28,6 +28,9 @@ struct PrivacyInfoView: View {
                 Text("若需做到「绝不外流」，请将 endpoint 配置为本地模型（如 Ollama）。")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(Color.appBackground)
+        .tint(.brandGreen)
         .navigationTitle("数据与隐私")
         .navigationBarTitleDisplayMode(.inline)
     }
